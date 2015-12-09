@@ -5,6 +5,10 @@ using namespace YG;
 
 int main(int argc, char **argv)
 {
+	Matrix4 mat;
+	cout << mat << endl;
+
+	/*
 	Renderer renderer;
 	Scene scene;
 	Camera camera;
@@ -23,7 +27,7 @@ int main(int argc, char **argv)
 	scene.Add(actor);
 
 	while (renderer.render(&scene, &camera)){}
-
+	*/
 	system("pause");
 	return 0;
 }
