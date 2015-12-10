@@ -1,6 +1,7 @@
 #include "File.hpp"
 
 using namespace YG;
+using namespace Core;
 
 std::ostream& ::operator<<(std::ostream& out, File& file)
 {

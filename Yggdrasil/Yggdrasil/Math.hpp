@@ -8,7 +8,7 @@
 
 namespace YG
 {
-	struct Math
+	namespace Math
 	{
 		static float Rad(float angle)
 		{

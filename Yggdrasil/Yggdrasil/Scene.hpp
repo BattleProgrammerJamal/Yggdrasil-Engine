@@ -7,18 +7,21 @@
 
 namespace YG
 {
-	class Scene
+	namespace Core
 	{
-		public:
-			Scene();
-			virtual ~Scene();
+		class Scene
+		{
+			public:
+				Scene();
+				virtual ~Scene();
 
-			void Add(Actor* actor) { m_children.push_back(actor); }
+				void Add(Actor* actor) { m_children.push_back(actor); }
 
-			std::vector<Actor*> getChildren() const { return m_children; }
+				std::vector<Actor*> getChildren() const { return m_children; }
 
-		protected:
-			std::vector<Actor*> m_children;
+			protected:
+				std::vector<Actor*> m_children;
+		};
 	};
 }
 

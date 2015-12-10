@@ -1,6 +1,7 @@
 #include "Matrix4.hpp"
 
 using namespace YG;
+using namespace Math;
 
 std::ostream& ::operator<<(std::ostream& out, Matrix4& m)
 {

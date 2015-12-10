@@ -5,14 +5,17 @@
 
 namespace YG
 {
-	class Camera
+	namespace Core
 	{
-		public:
-			Camera();
-			virtual ~Camera();
+		class Camera
+		{
+			public:
+				Camera();
+				virtual ~Camera();
 
-		protected:
+			protected:
 
+		};
 	};
 };
 

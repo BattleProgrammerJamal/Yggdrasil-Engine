@@ -44,9 +44,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>Libs\TinyObjLoader\TINY;Libs\stbimage\include;Libs\SFML\include;Libs\glew\include;Libs\AntTweakBar\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>Libs\SFML\lib;Libs\glew\lib;Libs\AntTweakBar\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -56,25 +59,33 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>Libs\TinyObjLoader\TINY;Libs\stbimage\include;Libs\SFML\include;Libs\glew\include;Libs\AntTweakBar\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>Libs\SFML\lib;Libs\glew\lib;Libs\AntTweakBar\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Color.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="Matrix4.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="Vector3.cpp" />
@@ -84,14 +95,19 @@
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Asset.hpp" />
     <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="Color.hpp" />
     <ClInclude Include="File.hpp" />
+    <ClInclude Include="Image.hpp" />
     <ClInclude Include="main.hpp" />
     <ClInclude Include="Math.hpp" />
     <ClInclude Include="Matrix4.hpp" />
+    <ClInclude Include="Model.hpp" />
     <ClInclude Include="Quaternion.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scene.hpp" />
+    <ClInclude Include="Shader.hpp" />
+    <ClInclude Include="Texture.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="Vector2.hpp" />
     <ClInclude Include="Vector3.hpp" />

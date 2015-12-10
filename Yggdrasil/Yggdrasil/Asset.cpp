@@ -1,3 +1,6 @@
 #include "Asset.hpp"
 
-unsigned int YG::Asset::sm_id = 0;
+using namespace YG;
+using namespace Core;
+
+unsigned int Asset::sm_id = 0;

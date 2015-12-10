@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 
 using namespace YG;
+using namespace Core;
 
 Scene::Scene()
 {

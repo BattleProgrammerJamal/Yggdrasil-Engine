@@ -7,22 +7,25 @@
 
 namespace YG
 {
-	class Actor
+	namespace Core
 	{
-		public:
-			Transform transform;
+		class Actor
+		{
+			public:
+				Math::Transform transform;
 
-			Actor(std::string name = "Actor");
-			virtual ~Actor();
+				Actor(std::string name = "Actor");
+				virtual ~Actor();
 
-			std::string getName() const { return m_name; }
-			void setName(const std::string& name) { m_name = name; }
+				std::string getName() const { return m_name; }
+				void setName(const std::string& name) { m_name = name; }
 
-			Actor* getParent() const { return m_parent; }
+				Actor* getParent() const { return m_parent; }
 
-		protected:
-			Actor* m_parent;
-			std::string m_name;
+			protected:
+				Actor* m_parent;
+				std::string m_name;
+		};
 	};
 };
 

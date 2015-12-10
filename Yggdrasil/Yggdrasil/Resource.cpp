@@ -1,3 +1,6 @@
 #include "Resource.hpp"
 
-unsigned int YG::Resource::sm_id = 0;
+using namespace YG;
+using namespace Core;
+
+unsigned int Resource::sm_id = 0;

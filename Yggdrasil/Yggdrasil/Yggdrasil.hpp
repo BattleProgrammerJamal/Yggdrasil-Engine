@@ -9,6 +9,7 @@
 #include "Quaternion.hpp"
 #include "Asset.hpp"
 #include "File.hpp"
+#include "Image.hpp"
 #include "Renderer.hpp"
 
 namespace YG
