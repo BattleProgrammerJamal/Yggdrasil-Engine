@@ -3,12 +3,15 @@
 
 #include <iostream>
 #include <vector>
+#include "Transform.hpp"
 
 namespace YG
 {
 	class Actor
 	{
 		public:
+			Transform transform;
+
 			Actor(std::string name = "Actor");
 			virtual ~Actor();
 

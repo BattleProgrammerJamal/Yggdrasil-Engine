@@ -5,8 +5,11 @@ using namespace YG;
 
 int main(int argc, char **argv)
 {
-	Matrix4 mat;
-	cout << mat << endl;
+	File f("Assets/shaders/lambert.vs", 'r');
+	for (unsigned int i = 0; i < f.size(); ++i)
+	{
+		cout << f << endl;
+	}
 
 	/*
 	Renderer renderer;
