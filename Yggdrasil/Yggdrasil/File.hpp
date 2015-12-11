@@ -49,10 +49,51 @@ namespace YG
 					}
 				}
 
+				static char* CLoad(const char *sourceFile)
+				{
+					char* text = 0;
+
+					if (sourceFile != 0)
+					{
+						FILE *file;
+						fopen_s(&file, sourceFile, "r");
+
+						if (file != 0)
+						{
+							fseek(file, 0, SEEK_END);
+							int count = ftell(file);
+							rewind(file);
+
+							if (count > 0)
+							{
+								text = (char*)malloc(count + 1);
+								count = (int)fread(text, sizeof(char), count, file);
+								text[count] = '\0';
+							}
+
+							fclose(file);
+						}
+					}
+
+					return text;
+				}
+
 				File& Load(const std::string& path)
 				{
 					setPath(path);
 					Load();
+					return *this;
+				}
+
+				File& AddCRLF()
+				{
+					if (isLoaded())
+					{
+						for (unsigned int i = 0; i < m_content.size(); ++i)
+						{
+							m_content.at(i) = m_content.at(i) + "\n";
+						}
+					}
 					return *this;
 				}
 

@@ -10,6 +10,8 @@
 #include "Asset.hpp"
 #include "File.hpp"
 #include "Image.hpp"
+#include "Texture.hpp"
+#include "Shader.hpp"
 #include "Renderer.hpp"
 
 namespace YG

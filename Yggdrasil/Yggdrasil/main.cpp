@@ -5,28 +5,13 @@ using namespace YG;
 
 int main(int argc, char **argv)
 {
-
-
-	/*
-	Core::Renderer renderer;
+	Core::Renderer renderer(1024, 768, "ESGI \\ Jamal BOUIZEM - OpenGL Renderer");
 	Core::Scene scene;
 	Core::Camera camera;
 
-	Core::Actor* actor = 0;
-
-	actor = new Core::Actor("A");
-	scene.Add(actor);
-	actor = new Core::Actor("B");
-	scene.Add(actor);
-	actor = new Core::Actor("C");
-	scene.Add(actor);
-	actor = new Core::Actor("D");
-	scene.Add(actor);
-	actor = new Core::Actor("E");
-	scene.Add(actor);
+	Core::Actor* actor = new Core::Actor("TestActor");
+	//scene.Add(actor);
 
 	while (renderer.render(&scene, &camera)){}
-	*/
-	system("pause");
 	return 0;
 }
