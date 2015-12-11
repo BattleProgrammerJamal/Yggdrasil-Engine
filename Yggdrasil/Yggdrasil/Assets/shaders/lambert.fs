@@ -1,10 +1,4 @@
-#version 430
-
-layout (std140, binding = 1) uniform Matrices
-{
-    mat4 view;
-    mat4 projection;
-};
+#version 330
 
 in vec3 v_position;
 in vec3 v_normal;

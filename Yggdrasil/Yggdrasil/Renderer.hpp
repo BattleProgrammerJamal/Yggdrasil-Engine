@@ -41,6 +41,19 @@ namespace YG
 				Math::Color getClearColor() const { return m_clearColor; }
 				void setClearColor(const Math::Color& color) { m_clearColor = color; }
 
+				void setAlphaChannel(bool state)
+				{
+					if (state)
+					{
+						glEnable(GL_BLEND);
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					}
+					else
+					{
+						glDisable(GL_BLEND);
+					}
+				}
+
 			protected:
 				void createDisplay(const std::string& title = "OpenGLRenderer");
 

@@ -75,6 +75,18 @@
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.hpp">
@@ -135,6 +147,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Model.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
