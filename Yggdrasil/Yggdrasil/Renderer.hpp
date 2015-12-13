@@ -6,6 +6,7 @@
 #include "Scene.hpp"
 #include "Camera.hpp"
 #include "Color.hpp"
+#include "Mesh.hpp"
 
 #include "glew.h"
 #include <SFML/Graphics.hpp>
@@ -14,6 +15,8 @@
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 3
 
+#define UBO_SIZE() sizeof(float) * (16 + 16)
+
 namespace YG
 {
 	namespace Core
@@ -21,10 +24,12 @@ namespace YG
 		class Renderer
 		{
 			public:
+				sf::Clock clock;
+
 				Renderer(unsigned int width = 800, unsigned int height = 600, const std::string& title = std::string("OpenGLRenderer"));
 				virtual ~Renderer();
 
-				bool render(const Scene *scene, const Camera *camera);
+				bool render(Scene *scene, Camera *camera);
 
 				unsigned int getWidth() const { return m_width; }
 				void setWidth(unsigned int width) { m_width = width; }
@@ -54,9 +59,12 @@ namespace YG
 					}
 				}
 
+				GLuint getUBO() const { return m_ubo; }
+
 			protected:
 				void createDisplay(const std::string& title = "OpenGLRenderer");
 
+				GLuint m_ubo;
 				sf::Window* m_window;
 				sf::Event m_event;
 				unsigned int m_width;

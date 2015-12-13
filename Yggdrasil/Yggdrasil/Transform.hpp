@@ -37,14 +37,14 @@ namespace YG
 
 				void Scale(const Vector3& u)
 				{
-					scale = scale + u;
+					scale = scale * u;
 					updateWorldMatrix();
 				}
 
 				void updateWorldMatrix()
 				{
 					Matrix4 T = Matrix4::TranslationMatrix(position);
-					Matrix4 R = Matrix4::RotationMatrix(rotation);
+					Matrix4 R = Matrix4::RotationEulerMatrix(rotation);
 					Matrix4 S = Matrix4::ScaleMatrix(scale);
 					world = S * R * T;
 				}

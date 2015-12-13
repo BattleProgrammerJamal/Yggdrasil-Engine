@@ -89,16 +89,16 @@ namespace YG
 					{
 						for (unsigned int j = 0; j < 4; ++j)
 						{
-							unsigned int index1 = i + j * 4;
+							unsigned int index = i + j * 4;
 
 							float sum = 0.0f;
 							for (unsigned int k = 0; k < 4; ++k)
 							{
-								unsigned int index2 = k + i * 4;
-								sum = sum + (m_data[index1] * m.m_data[index2]);
+								unsigned int index2 = k + j * 4;
+								sum = sum + (m_data[index] * m.m_data[index2]);
 							}
 
-							rslt[index1] = sum;
+							rslt[index] = sum;
 						}
 					}
 					return rslt;
@@ -128,9 +128,9 @@ namespace YG
 				static Matrix4 TranslationMatrix(const Vector3& v)
 				{
 					Matrix4 mat;
-					mat[3] = v.x;
-					mat[7] = v.y;
-					mat[11] = v.z;
+					mat[12] = v.x;
+					mat[13] = v.y;
+					mat[14] = v.z;
 					return mat;
 				}
 
@@ -147,6 +147,44 @@ namespace YG
 					Matrix4 rotMatrix;
 					rotMatrix.fromQuaternion(q);
 					return rotMatrix;
+				}
+
+				static Matrix4 RotationEulerXMatrix(float angle)
+				{
+					Matrix4 mat;
+					mat[5] = cos(angle);
+					mat[6] = -sin(angle);
+					mat[9] = sin(angle);
+					mat[10] = cos(angle);
+					return mat;
+				}
+
+				static Matrix4 RotationEulerYMatrix(float angle)
+				{
+					Matrix4 mat;
+					mat[0] = cos(angle);
+					mat[8] = -sin(angle);
+					mat[2] = sin(angle);
+					mat[10] = cos(angle);
+					return mat;
+				}
+
+				static Matrix4 RotationEulerZMatrix(float angle)
+				{
+					Matrix4 mat;
+					mat[0] = cos(angle);
+					mat[4] = -sin(angle);
+					mat[1] = sin(angle);
+					mat[5] = cos(angle);
+					return mat;
+				}
+
+				static Matrix4 RotationEulerMatrix(const Vector3& v)
+				{
+					Matrix4 rotX = RotationEulerXMatrix(v.x);
+					Matrix4 rotY = RotationEulerYMatrix(v.y);
+					Matrix4 rotZ = RotationEulerZMatrix(v.z);
+					return rotZ * rotY * rotX;
 				}
 
 				static Matrix4 ScaleMatrix(const Vector3& v)
@@ -202,6 +240,8 @@ namespace YG
 
 					return orientation * translation;
 				}
+
+				const float* getData() const { return m_data; }
 
 			private:
 				friend std::ostream& operator<<(std::ostream& out, Matrix4& m);

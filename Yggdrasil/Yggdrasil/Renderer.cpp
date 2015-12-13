@@ -27,14 +27,18 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 	}
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	std::cout << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL Version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	std::cout << "GPU Version : " << glGetString(GL_RENDERER) << std::endl;
 
 	glViewport(0, 0, m_width, m_height);
+
+	glGenBuffers(1, &m_ubo);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+	glBufferData(GL_UNIFORM_BUFFER, UBO_SIZE(), 0, GL_STREAM_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_ubo);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
 }
 
 Renderer::~Renderer()
@@ -60,8 +64,10 @@ void Renderer::createDisplay(const std::string& title)
 	}
 }
 
-bool Renderer::render(const Scene *scene, const Camera *camera)
+bool Renderer::render(Scene *scene, Camera *camera)
 {
+	camera->updateView();
+
 	if (m_window->pollEvent(m_event))
 	{
 		if (m_event.type == sf::Event::Closed || (m_event.type == sf::Event::KeyPressed && m_event.key.code == sf::Keyboard::Escape))
@@ -80,11 +86,49 @@ bool Renderer::render(const Scene *scene, const Camera *camera)
 
 	glViewport(0, 0, m_width, m_height);
 	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	for (Actor* actor : scene->getChildren())
 	{
-		std::cout << "Draw " << actor->getName() << std::endl;
+		if (typeid(Mesh) == typeid(*actor))
+		{
+			Mesh *mesh = static_cast<Mesh*>(actor);
+			Geometry *geo = mesh->getGeometry();
+			Material *mat = mesh->getMaterial();
+			if (geo == 0 || mat == 0) { continue; }
+			GLuint shaderID = mat->getShader();
+
+			mat->Bind();
+
+			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, camera->getView().getData());
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, camera->getProj().getData());
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+			Math::Matrix4 T = Math::Matrix4::TranslationMatrix(mesh->transform.position);
+			Math::Matrix4 Rx = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.x);
+			Math::Matrix4 Ry = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.y);
+			Math::Matrix4 Rz = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.z);
+			Math::Matrix4 S = Math::Matrix4::ScaleMatrix(mesh->transform.scale);
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_translation"), 1, GL_TRUE, T.getData());
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_rotationX"), 1, GL_TRUE, Rx.getData());
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_rotationY"), 1, GL_TRUE, Ry.getData());
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_rotationZ"), 1, GL_TRUE, Rz.getData());
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_scale"), 1, GL_TRUE, S.getData());
+
+			glUniform1f(glGetUniformLocation(shaderID, "time"), (float)clock.getElapsedTime().asMilliseconds());
+
+			glUniform2i(glGetUniformLocation(shaderID, "u_iScreenSize"), (int)(1.0f / m_width), (int)(1.0f / m_height));
+
+			glBindVertexArray(geo->getVAO());
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geo->getIBO());
+
+			glDrawElementsInstanced(mesh->renderStyle, geo->getIndices().size(), GL_UNSIGNED_INT, (const void*)0, 20);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
+			mat->Unbind();
+		}
 	}
 
 	m_window->display();

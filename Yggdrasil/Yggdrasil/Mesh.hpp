@@ -18,13 +18,35 @@ namespace YG
 		class Mesh : public Actor
 		{
 			public:
+				GLenum renderStyle;
+
 				Mesh()
 					: Actor("Mesh")
 				{
+					m_geometry = 0;
+					m_material = 0;
+					renderStyle = GL_TRIANGLE_STRIP;
 				}
-				virtual ~Mesh()
+
+				Mesh(Geometry *geometry, Material *material)
+					: Actor("Mesh")
 				{
+					m_geometry = geometry;
+					m_material = material;
+					renderStyle = GL_TRIANGLE_STRIP;
 				}
+
+				~Mesh()
+				{
+					delete m_geometry;
+					delete m_material;
+				}
+
+				Geometry* getGeometry() const { return m_geometry; }
+				void setGeometry(Geometry *geometry) { m_geometry = geometry; }
+
+				Material* getMaterial() const { return m_material; }
+				void setMaterial(Material *material) { m_material = material; }
 
 			protected:
 				Geometry* m_geometry;

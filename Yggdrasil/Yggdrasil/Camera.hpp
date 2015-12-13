@@ -93,6 +93,9 @@ namespace YG
 
 				CAMERA_TYPE getCameraType() const { return m_type; }
 
+				Math::Matrix4 getView() const { return m_view; }
+				Math::Matrix4 getProj() const { return m_proj; }
+
 			protected:
 				CAMERA_TYPE m_type;
 				float m_l, m_r, m_t, m_b;

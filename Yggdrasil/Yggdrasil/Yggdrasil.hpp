@@ -14,6 +14,7 @@
 #include "Shader.hpp"
 #include "Material.hpp"
 #include "Geometry.hpp"
+#include "SphereGeometry.hpp"
 #include "Mesh.hpp"
 #include "RenderTarget.hpp"
 #include "Renderer.hpp"
@@ -22,6 +23,15 @@
 
 namespace YG
 {
+	class Yggdrasil;
+
+	struct OnRender
+	{
+		virtual void operator()(Yggdrasil *ygg)
+		{
+		}
+	};
+
 	class Yggdrasil
 	{
 		public:
@@ -58,9 +68,12 @@ namespace YG
 				return *this;
 			}
 
-			int Run()
+			int Run(OnRender &actionRender = OnRender())
 			{
-				while (m_renderer->render(m_scene, m_mainCamera));
+				while (m_renderer->render(m_scene, m_mainCamera))
+				{
+					actionRender(this);
+				}
 				return 0;
 			}
 

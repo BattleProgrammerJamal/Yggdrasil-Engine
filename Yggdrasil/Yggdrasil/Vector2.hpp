@@ -139,10 +139,11 @@ namespace YG
 					return v;
 				}
 
-				Vector2 operator=(const Vector2& u)
+				Vector2& operator=(const Vector2& u)
 				{
-					Vector2 v = Vector2(u);
-					return v;
+					x = u.x;
+					y = u.y;
+					return *this;
 				}
 
 				bool operator==(const Vector2& u)

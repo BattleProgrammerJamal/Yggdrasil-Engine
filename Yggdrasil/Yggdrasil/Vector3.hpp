@@ -149,10 +149,12 @@ namespace YG
 					return v;
 				}
 
-				Vector3 operator=(const Vector3& u)
+				Vector3& operator=(const Vector3& u)
 				{
-					Vector3 v = Vector3(u);
-					return v;
+					x = u.x;
+					y = u.y;
+					z = u.z;
+					return *this;
 				}
 
 				bool operator==(const Vector3& u)

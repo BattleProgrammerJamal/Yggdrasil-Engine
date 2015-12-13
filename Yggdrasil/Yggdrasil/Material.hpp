@@ -52,8 +52,7 @@ namespace YG
 				{
 					if (!vs.empty() && !fs.empty())
 					{
-						m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader()));
-						static_cast<Shader*>(m_resources["shader"])->Load(vs, fs);
+						m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader(vs, fs)));
 					}
 					else
 					{
@@ -90,7 +89,12 @@ namespace YG
 					{
 						std::strstream stream;
 						stream << "texture" << i;
+						if (!m_resources[stream.str()]) { continue; }
 						static_cast<Texture*>(m_resources[stream.str()])->Bind();
+						std::strstream texName;
+						texName << "u_texture" << i;
+						GLuint texLoc = glGetUniformLocation(static_cast<Shader*>(m_resources["shader"])->getId(), texName.str());
+						glUniform1i(texLoc, static_cast<Texture*>(m_resources[stream.str()])->getId());
 					}
 				}
 
@@ -100,9 +104,17 @@ namespace YG
 					{
 						std::strstream stream;
 						stream << "texture" << i;
-						static_cast<Texture*>(m_resources[stream.str()])->Unbind();
+						if (!m_resources[stream.str()]) { continue; }
+						//static_cast<Texture*>(m_resources[stream.str()])->Unbind();
 					}
 					static_cast<Shader*>(m_resources["shader"])->Unbind();
+				}
+
+				GLuint getShader() { return static_cast<Shader*>(m_resources["shader"])->getId(); }
+
+				Resource* operator[](const std::string& name)
+				{
+					return m_resources[name];
 				}
 
 			protected:

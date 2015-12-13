@@ -57,10 +57,11 @@ namespace YG
 												GL_UNSIGNED_BYTE,
 												images.at(0).getData()
 								);
-								glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-								glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+								glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+								glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 								glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 								glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+								glGenerateMipmap(GL_TEXTURE_2D);
 								glBindTexture(GL_TEXTURE_2D, 0);
 								break;
 
@@ -110,6 +111,7 @@ namespace YG
 				{
 					if (m_loaded)
 					{
+						glActiveTexture(GL_TEXTURE0 + m_unit);
 						glBindTexture(GL_TEXTURE_2D, 0);
 					}
 				}
