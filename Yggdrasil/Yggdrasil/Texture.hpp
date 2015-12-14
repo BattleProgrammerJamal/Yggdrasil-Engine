@@ -5,6 +5,7 @@
 #include <fstream>
 #include "Resource.hpp"
 #include "Image.hpp"
+#include "Vector2.hpp"
 
 #include "glew.h"
 #include <SFML/Graphics.hpp>
@@ -23,12 +24,15 @@ namespace YG
 		class Texture : public Resource
 		{
 			public:
+				Math::Vector2 repeat;
+
 				Texture(TEXTURE_TYPE type = TEXTURE, std::vector<std::string> paths = std::vector<std::string>(), GLuint unit = 0)
 					: Resource("TEXTURE")
 				{
 					m_paths = paths;
 					m_unit = unit;
 					m_type = type;
+					repeat.x = repeat.y = 1.0f;
 				}
 
 				void Load()
@@ -111,8 +115,7 @@ namespace YG
 				{
 					if (m_loaded)
 					{
-						glActiveTexture(GL_TEXTURE0 + m_unit);
-						glBindTexture(GL_TEXTURE_2D, 0);
+						//glBindTexture(GL_TEXTURE_2D, 0);
 					}
 				}
 

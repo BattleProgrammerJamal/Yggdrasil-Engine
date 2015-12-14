@@ -3,8 +3,6 @@
 using namespace std;
 using namespace YG;
 
-Core::Mesh *mesh;
-
 struct EventOnRender : public OnRender
 {
 	public:
@@ -20,7 +18,7 @@ struct EventOnRender : public OnRender
 		{
 			current = ygg->getRenderer()->clock.getElapsedTime().asSeconds();
 
-			mesh->transform.Rotate(Math::Vector3(dt * 10.0f, dt * 40.0f, dt * 20.0f));
+			ygg->getScene()->getByName("Sphere")->transform.Rotate(Math::Vector3(0.0f, dt * 40.0f, 0.0f));
 
 			dt = ygg->getRenderer()->clock.getElapsedTime().asSeconds() - current;
 		}
@@ -30,15 +28,17 @@ int main(int argc, char **argv)
 {
 	Yggdrasil app(1024, 768, "Yggdrasil Engine 1.0");
 
-	app.getCamera()->lookAt(Math::Vector3(0.0f, 0.0f, -10.0f), Math::Vector3(), Math::Vector3(0.0f, 1.0f, 0.0f));
+	app.getCamera()->eye = Math::Vector3(0.0f, -1.0f, -10.0f);
 	
 	Core::Material *material = new Core::Material("Assets/shaders/lambert.vs", "Assets/shaders/lambert.fs");
-	material->loadTexture("Assets/textures/lava2.jpg");
-	Core::Geometry *geometry = new Core::SphereGeometry(0.3f, 64, 64);
+	material->loadTexture("Assets/textures/lava1.jpg");
 
-	mesh = new Core::Mesh(geometry, material);
-	mesh->renderStyle = GL_TRIANGLE_STRIP;
-	app.addActor(mesh);
+	Core::Material *material2 = new Core::Material("Assets/shaders/lambert.vs", "Assets/shaders/lambert.fs");
+	material2->loadTexture("Assets/textures/lava2.jpg").repeat.set(2.0f, 2.0f);
+
+	Core::Mesh *sphere = new Core::Mesh(new Core::SphereGeometry(1.0f, 128, 128), material);
+	sphere->setName("Sphere");
+	app.addActor(sphere);
 	
 	return app.Run(EventOnRender());
 }

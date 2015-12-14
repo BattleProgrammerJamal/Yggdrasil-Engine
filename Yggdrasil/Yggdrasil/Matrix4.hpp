@@ -45,6 +45,27 @@ namespace YG
 					}
 				}
 
+				Matrix4& transpose()
+				{
+					float temp = 0.0f;
+					temp = m_data[4];
+					m_data[4] = m_data[1];
+					m_data[1] = temp;
+
+					temp = m_data[8];
+					m_data[8] = m_data[2];
+					m_data[2] = temp;
+
+					temp = m_data[13];
+					m_data[13] = m_data[7];
+					m_data[7] = temp;
+
+					temp = m_data[14];
+					m_data[14] = m_data[11];
+					m_data[11] = temp;
+					return *this;
+				}
+
 				float& operator[](unsigned int index)
 				{
 					return m_data[index];
@@ -85,22 +106,45 @@ namespace YG
 				Matrix4 operator*(const Matrix4& m)
 				{
 					Matrix4 rslt;
+					/*
+					rslt[0] =	m_data[0] * m.m_data[0] + m_data[1] * m.m_data[4] + m_data[2] * m.m_data[8] + m_data[3] * m.m_data[12];
+					rslt[1] =	m_data[0] * m.m_data[1] + m_data[1] * m.m_data[5] + m_data[2] * m.m_data[9] + m_data[3] * m.m_data[13];
+					rslt[2] =	m_data[0] * m.m_data[2] + m_data[1] * m.m_data[6] + m_data[2] * m.m_data[10] + m_data[3] * m.m_data[14];
+					rslt[3] =	m_data[0] * m.m_data[3] + m_data[1] * m.m_data[7] + m_data[2] * m.m_data[11] + m_data[3] * m.m_data[15];
+					
+					rslt[4] =	m_data[4] * m.m_data[0] + m_data[5] * m.m_data[4] + m_data[6] * m.m_data[8] + m_data[7] * m.m_data[12];
+					rslt[5] =	m_data[4] * m.m_data[1] + m_data[5] * m.m_data[5] + m_data[6] * m.m_data[9] + m_data[7] * m.m_data[13];
+					rslt[6] =	m_data[4] * m.m_data[2] + m_data[5] * m.m_data[6] + m_data[6] * m.m_data[10] + m_data[7] * m.m_data[14];
+					rslt[7] =	m_data[4] * m.m_data[3] + m_data[5] * m.m_data[7] + m_data[6] * m.m_data[11] + m_data[7] * m.m_data[15];
+					
+					rslt[8] =	m_data[8] * m.m_data[0] + m_data[9] * m.m_data[4] + m_data[10] * m.m_data[8] + m_data[11] * m.m_data[12];
+					rslt[9] =	m_data[8] * m.m_data[1] + m_data[9] * m.m_data[5] + m_data[10] * m.m_data[9] + m_data[11] * m.m_data[13];
+					rslt[10] =	m_data[8] * m.m_data[2] + m_data[9] * m.m_data[6] + m_data[10] * m.m_data[10] + m_data[11] * m.m_data[14];
+					rslt[11] =	m_data[8] * m.m_data[3] + m_data[9] * m.m_data[7] + m_data[10] * m.m_data[11] + m_data[11] * m.m_data[15];
+					
+					rslt[12] =	m_data[12] * m.m_data[0] + m_data[13] * m.m_data[4] + m_data[14] * m.m_data[8] + m_data[15] * m.m_data[12];
+					rslt[13] =	m_data[12] * m.m_data[1] + m_data[13] * m.m_data[5] + m_data[14] * m.m_data[9] + m_data[15] * m.m_data[13];
+					rslt[14] =	m_data[12] * m.m_data[2] + m_data[13] * m.m_data[6] + m_data[14] * m.m_data[10] + m_data[15] * m.m_data[14];
+					rslt[15] =	m_data[12] * m.m_data[3] + m_data[13] * m.m_data[7] + m_data[14] * m.m_data[11] + m_data[15] * m.m_data[15];
+					*/
 					for (unsigned int i = 0; i < 4; ++i)
 					{
 						for (unsigned int j = 0; j < 4; ++j)
 						{
-							unsigned int index = i + j * 4;
+							unsigned int index = j + i * 4;
 
 							float sum = 0.0f;
 							for (unsigned int k = 0; k < 4; ++k)
 							{
-								unsigned int index2 = k + j * 4;
+								unsigned int index1 = i + k * 4;
+								unsigned int index2 = j + k * 4;
 								sum = sum + (m_data[index] * m.m_data[index2]);
 							}
 
 							rslt[index] = sum;
 						}
 					}
+					
 					return rslt;
 				}
 			
@@ -128,9 +172,9 @@ namespace YG
 				static Matrix4 TranslationMatrix(const Vector3& v)
 				{
 					Matrix4 mat;
-					mat[12] = v.x;
-					mat[13] = v.y;
-					mat[14] = v.z;
+					mat[3] = v.x;
+					mat[7] = v.y;
+					mat[11] = v.z;
 					return mat;
 				}
 
@@ -235,10 +279,10 @@ namespace YG
 					orientation[8] = xaxis.z;
 					orientation[9] = yaxis.z;
 					orientation[10] = zaxis.z;
-
 					Matrix4 translation = TranslationMatrix(-eye);
+					Matrix4 view = orientation * translation;
 
-					return orientation * translation;
+					return view;
 				}
 
 				const float* getData() const { return m_data; }

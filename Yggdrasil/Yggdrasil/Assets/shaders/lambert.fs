@@ -6,6 +6,7 @@ in vec3 v_tangent;
 in vec2 v_uv;
 
 uniform sampler2D u_texture0;
+uniform vec2 u_texture_repeat0;
 uniform float time;
 uniform vec2 u_iScreenSize;
 
@@ -35,7 +36,8 @@ Light makeLight(vec3 position, vec3 reflectance, float intensity)
 
 void main(void)
 {
-	vec4 tex = texture(u_texture0, -v_uv * 2.0);
+	vec2 uv = vec2(v_uv.x * u_texture_repeat0.x, v_uv.y * u_texture_repeat0.y);
+	vec4 tex = texture(u_texture0, v_uv);
 	float dt = time / 1000.0;	
 	vec3 N = normalize(v_normal);
 	Light LIGHTS[] = Light[](
@@ -65,6 +67,13 @@ void main(void)
 		specular += LIGHTS[i].reflectance * specularTerm * 1.0;
 	}
 	vec3 lighting = ambient * diffuse + specular;
+	
+	float l = (tex.r + tex.g + tex.b) / 3.0;
+	if(l > 0.7)
+	{
+		tex.g = tex.r * cos(dt * l * tex.b);
+		tex.b = tex.g * cos(dt * l * tex.r);
+	}
 	
     o_color = tex + vec4(lighting, 1.0);
 }

@@ -101,8 +101,8 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			mat->Bind();
 
 			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, camera->getView().getData());
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, camera->getProj().getData());
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, camera->view.getData());
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, camera->proj.getData());
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			Math::Matrix4 T = Math::Matrix4::TranslationMatrix(mesh->transform.position);
@@ -115,6 +115,7 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_rotationY"), 1, GL_TRUE, Ry.getData());
 			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_rotationZ"), 1, GL_TRUE, Rz.getData());
 			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_scale"), 1, GL_TRUE, S.getData());
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_world"), 1, GL_TRUE, mesh->transform.world.getData());
 
 			glUniform1f(glGetUniformLocation(shaderID, "time"), (float)clock.getElapsedTime().asMilliseconds());
 
@@ -123,7 +124,7 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			glBindVertexArray(geo->getVAO());
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geo->getIBO());
 
-			glDrawElementsInstanced(mesh->renderStyle, geo->getIndices().size(), GL_UNSIGNED_INT, (const void*)0, 20);
+			glDrawElements(mesh->renderStyle, geo->getIndices().size(), GL_UNSIGNED_INT, (const void*)0);
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);

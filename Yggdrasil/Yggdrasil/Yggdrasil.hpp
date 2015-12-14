@@ -15,6 +15,7 @@
 #include "Material.hpp"
 #include "Geometry.hpp"
 #include "SphereGeometry.hpp"
+#include "PlaneGeometry.hpp"
 #include "Mesh.hpp"
 #include "RenderTarget.hpp"
 #include "Renderer.hpp"

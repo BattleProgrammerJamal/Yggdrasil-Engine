@@ -1,4 +1,4 @@
-﻿Build started 13/12/2015 07:02:02.
+﻿Build started 14/12/2015 01:15:05.
      1>Project "C:\Users\Jamal\Documents\GitHub\Yggdrasil-Engine\Yggdrasil\Yggdrasil\Yggdrasil.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ILibs\TinyObjLoader\TINY /ILibs\stbimage\include /ILibs\SFML\include /ILibs\glew\include /ILibs\AntTweakBar\include /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
@@ -17,6 +17,7 @@
          Debug\Matrix4.obj
          Debug\Mesh.obj
          Debug\Model.obj
+         Debug\PlaneGeometry.obj
          Debug\Quaternion.obj
          Debug\Renderer.obj
          Debug\RenderTarget.obj
@@ -34,4 +35,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.54
+Time Elapsed 00:00:01.67

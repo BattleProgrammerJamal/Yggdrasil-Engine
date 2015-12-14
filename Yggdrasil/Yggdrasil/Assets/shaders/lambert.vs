@@ -21,6 +21,7 @@ uniform mat4 u_rotationX;
 uniform mat4 u_rotationY;
 uniform mat4 u_rotationZ;
 uniform mat4 u_scale;
+uniform mat4 u_world;
 uniform float time;
 
 void main(void)
@@ -29,11 +30,8 @@ void main(void)
 	v_normal = a_normal;
 	v_tangent = a_tangent;
 	v_uv = a_uv;
-	mat4 world = u_scale * (u_rotationZ * u_rotationY * u_rotationX) * u_translation;
+	mat4 world = u_scale * (u_rotationX * u_rotationY * u_rotationZ) * u_translation;
 	vec4 pos = vec4(a_position, 1.0);
-	pos.x = pos.x + -0.25 + 2.0 * sin(time / 1000.0) * cos(gl_InstanceID);
-	pos.y = pos.y + -0.5 + cos(time / 1000.0) * sin(gl_InstanceID);
-	pos.z = pos.z + 0.75 + cos(time / 1000.0) * sin(gl_InstanceID);
 	
 	gl_Position = proj * view * world * pos;
 }

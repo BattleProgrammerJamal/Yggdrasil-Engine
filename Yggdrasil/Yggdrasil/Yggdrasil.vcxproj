@@ -83,6 +83,7 @@
     <ClCompile Include="Matrix4.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="PlaneGeometry.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="Matrix4.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Model.hpp" />
+    <ClInclude Include="PlaneGeometry.hpp" />
     <ClInclude Include="Quaternion.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="RenderTarget.hpp" />

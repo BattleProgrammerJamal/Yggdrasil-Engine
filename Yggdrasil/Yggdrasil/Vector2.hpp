@@ -25,6 +25,13 @@ namespace YG
 					this->y = u.y;
 				}
 
+				Vector2& set(float x, float y)
+				{
+					this->x = x;
+					this->y = y;
+					return *this;
+				}
+
 				float length() 
 				{ 
 					return sqrt(x * x + y * y);

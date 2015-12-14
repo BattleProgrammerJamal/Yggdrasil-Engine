@@ -73,13 +73,14 @@ namespace YG
 					m_textureLoadingId = 0;
 				}
 
-				void loadTexture(const std::string& path)
+				Texture& loadTexture(const std::string& path)
 				{
 					std::strstream stream;
 					stream << "texture" << m_textureLoadingId;
 					static_cast<Texture*>(m_resources[stream.str()])->setPaths(std::vector<std::string>{ path });
 					static_cast<Texture*>(m_resources[stream.str()])->Load();
 					m_textureLoadingId = (m_textureLoadingId + 1) % MAXIMUM_TEXTURE;
+					return *static_cast<Texture*>(m_resources[stream.str()]);
 				}
 
 				void Bind()
@@ -95,6 +96,10 @@ namespace YG
 						texName << "u_texture" << i;
 						GLuint texLoc = glGetUniformLocation(static_cast<Shader*>(m_resources["shader"])->getId(), texName.str());
 						glUniform1i(texLoc, static_cast<Texture*>(m_resources[stream.str()])->getId());
+						std::strstream texRepeat;
+						texRepeat << "u_texture_repeat" << i;
+						GLuint texRepeatLoc = glGetUniformLocation(static_cast<Shader*>(m_resources["shader"])->getId(), texRepeat.str());
+						glUniform2f(texRepeatLoc, static_cast<Texture*>(m_resources[stream.str()])->repeat.x, static_cast<Texture*>(m_resources[stream.str()])->repeat.y);
 					}
 				}
 
@@ -105,7 +110,7 @@ namespace YG
 						std::strstream stream;
 						stream << "texture" << i;
 						if (!m_resources[stream.str()]) { continue; }
-						//static_cast<Texture*>(m_resources[stream.str()])->Unbind();
+						static_cast<Texture*>(m_resources[stream.str()])->Unbind();
 					}
 					static_cast<Shader*>(m_resources["shader"])->Unbind();
 				}

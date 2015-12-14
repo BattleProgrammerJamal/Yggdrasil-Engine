@@ -27,6 +27,14 @@ namespace YG
 					this->z = u.z;
 				}
 
+				Vector3& set(float x, float y, float z)
+				{
+					this->x = x;
+					this->y = y;
+					this->z = z;
+					return *this;
+				}
+
 				float length() 
 				{ 
 					return sqrt(x * x + y * y + z * z);
