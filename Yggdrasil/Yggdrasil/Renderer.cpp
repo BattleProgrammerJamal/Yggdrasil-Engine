@@ -9,6 +9,11 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 	m_height = height;
 	m_fullscreen = false;
 	m_clearColor = Math::Color(0.0f, 0.0f, 0.0f, 1.0f);
+	m_currentLightIndex = 0;
+	for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
+	{
+		m_lights[i] = 0;
+	}
 
 	createDisplay(title);
 
@@ -43,6 +48,13 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 
 Renderer::~Renderer()
 {
+	for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
+	{
+		if (m_lights[i])
+		{
+			delete m_lights[i];
+		}
+	}
 }
 
 void Renderer::createDisplay(const std::string& title)
@@ -110,6 +122,26 @@ bool Renderer::render(Scene *scene, Camera *camera)
 				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_view"), 1, GL_FALSE, camera->view.getData());
 				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_proj"), 1, GL_FALSE, camera->proj.getData());
 			}
+
+			unsigned int counterLightActive = 0;
+			for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
+			{
+				if (m_lights[i]) { counterLightActive = (i == 0) ? counterLightActive : (counterLightActive + 1); } else { continue; }
+
+				std::stringstream stream1, stream2, stream3;
+				stream1 << "u_lights[" << counterLightActive << "].position";
+				stream2 << "u_lights[" << counterLightActive << "].reflectance";
+				stream3 << "u_lights[" << counterLightActive << "].intensity";
+				GLuint lightPosLocation = glGetUniformLocation(shaderID, stream1.str().c_str());
+				GLuint lightReflLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
+				GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
+
+				glUniform3f(lightPosLocation, m_lights[i]->position.x, m_lights[i]->position.y, m_lights[i]->position.z);
+				glUniform3f(lightReflLocation, m_lights[i]->reflectance.r, m_lights[i]->reflectance.g, m_lights[i]->reflectance.b);
+				glUniform1f(lightIntenLocation, m_lights[i]->intensity);
+			}
+			GLuint lightCountLocation = glGetUniformLocation(shaderID, "u_lightCount");
+			glUniform1i(lightCountLocation, counterLightActive);
 
 			Math::Matrix4 T = Math::Matrix4::TranslationMatrix(mesh->transform.position);
 			Math::Matrix4 Rx = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.x);

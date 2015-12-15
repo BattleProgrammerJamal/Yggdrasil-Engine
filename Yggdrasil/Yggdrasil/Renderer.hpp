@@ -3,10 +3,13 @@
 
 #include <iostream>
 #include <string>
+#include <strstream>
+#include <sstream>
 #include "Scene.hpp"
 #include "Camera.hpp"
 #include "Color.hpp"
 #include "Mesh.hpp"
+#include "Light.hpp"
 
 #include "glew.h"
 #include <SFML/Graphics.hpp>
@@ -14,6 +17,8 @@
 
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 3
+
+#define MAXIMUM_LIGHT 16
 
 #define UBO_SUPPORTED false
 #define UBO_SIZE() sizeof(float) * (16 + 16)
@@ -62,6 +67,18 @@ namespace YG
 
 				GLuint getUBO() const { return m_ubo; }
 
+				Light& addLight(Light *light)
+				{
+					m_lights[m_currentLightIndex] = light;
+					m_currentLightIndex = (m_currentLightIndex + 1) % MAXIMUM_LIGHT;
+					return *m_lights[(m_currentLightIndex - 1) % MAXIMUM_LIGHT];
+				}
+
+				Light& getLight(unsigned int index)
+				{
+					return *m_lights[index % MAXIMUM_LIGHT];
+				}
+
 			protected:
 				void createDisplay(const std::string& title = "OpenGLRenderer");
 
@@ -72,6 +89,8 @@ namespace YG
 				unsigned int m_height;
 				bool m_fullscreen;
 				Math::Color m_clearColor;
+				int m_currentLightIndex;
+				Light* m_lights[MAXIMUM_LIGHT];
 		};
 	};
 };

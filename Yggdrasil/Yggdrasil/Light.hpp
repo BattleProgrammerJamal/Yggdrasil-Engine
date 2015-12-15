@@ -6,6 +6,8 @@
 #include "Vector3.hpp"
 #include "Color.hpp"
 
+#define LIGHT_SIZE() sizeof(float) * (3 + 3 + 1)
+
 namespace YG
 {
 	namespace Core

@@ -74,6 +74,12 @@ namespace YG
 				return *this;
 			}
 
+			Yggdrasil& addLight(Core::Light* light)
+			{
+				m_renderer->addLight(light);
+				return *this;
+			}
+
 			int Run(OnRender &actionRender = OnRender())
 			{
 				while (m_renderer->render(m_scene, m_mainCamera))
