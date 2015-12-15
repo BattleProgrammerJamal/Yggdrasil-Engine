@@ -98,15 +98,13 @@ namespace YG
 					}
 				}
 
-				void Load(const std::string &vertexShaderContent, const std::string &fragmentShaderContent, const std::string &geometryShaderContent = "")
+				void Load(const char* vs, const char* fs, const char* gs = 0)
 				{
 					m_loaded = false;
 
-					if (vertexShaderContent.size())
 					{
 						m_vs = glCreateShader(GL_VERTEX_SHADER);
-						const char* content = vertexShaderContent.c_str();
-						glShaderSource(m_vs, 1, &content, 0);
+						glShaderSource(m_vs, 1, (const char**)&vs, 0);
 						glCompileShader(m_vs);
 						int success;
 						char infoLog[512];
@@ -118,11 +116,9 @@ namespace YG
 						}
 					}
 
-					if (fragmentShaderContent.size())
 					{
 						m_fs = glCreateShader(GL_FRAGMENT_SHADER);
-						const char* content = fragmentShaderContent.c_str();
-						glShaderSource(m_fs, 1, &content, 0);
+						glShaderSource(m_fs, 1, (const char**)&fs, 0);
 						glCompileShader(m_fs);
 						int success;
 						char infoLog[512];
@@ -134,11 +130,9 @@ namespace YG
 						}
 					}
 
-					if (geometryShaderContent.size())
 					{
 						m_gs = glCreateShader(GL_GEOMETRY_SHADER);
-						const char* content = geometryShaderContent.c_str();
-						glShaderSource(m_gs, 1, &content, 0);
+						glShaderSource(m_gs, 1, (const char**)&gs, 0);
 						glCompileShader(m_gs);
 						int success;
 						char infoLog[512];
@@ -151,13 +145,9 @@ namespace YG
 					}
 
 					m_id = glCreateProgram();
-					if (vertexShaderContent.size()) {
-						glAttachShader(m_id, m_vs); 
-					}
-					if (fragmentShaderContent.size()) {
-						glAttachShader(m_id, m_fs); 
-					}
-					if (geometryShaderContent.size()) {
+					glAttachShader(m_id, m_vs);
+					glAttachShader(m_id, m_fs);
+					if (gs != 0) {
 						glAttachShader(m_id, m_gs); 
 					}
 					glLinkProgram(m_id);

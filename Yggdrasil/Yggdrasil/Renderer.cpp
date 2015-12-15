@@ -105,10 +105,16 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, camera->proj.getData());
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+			if (UBO_SUPPORTED == false)
+			{
+				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_view"), 1, GL_FALSE, camera->view.getData());
+				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_proj"), 1, GL_FALSE, camera->proj.getData());
+			}
+
 			Math::Matrix4 T = Math::Matrix4::TranslationMatrix(mesh->transform.position);
 			Math::Matrix4 Rx = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.x);
-			Math::Matrix4 Ry = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.y);
-			Math::Matrix4 Rz = Math::Matrix4::RotationEulerXMatrix(mesh->transform.rotation.z);
+			Math::Matrix4 Ry = Math::Matrix4::RotationEulerYMatrix(mesh->transform.rotation.y);
+			Math::Matrix4 Rz = Math::Matrix4::RotationEulerZMatrix(mesh->transform.rotation.z);
 			Math::Matrix4 S = Math::Matrix4::ScaleMatrix(mesh->transform.scale);
 			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_translation"), 1, GL_TRUE, T.getData());
 			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_rotationX"), 1, GL_TRUE, Rx.getData());

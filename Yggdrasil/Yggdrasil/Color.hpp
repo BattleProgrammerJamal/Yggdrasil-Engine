@@ -29,6 +29,14 @@ namespace YG
 					this->a = u.a;
 				}
 
+				Color& set(float r, float g, float b)
+				{
+					this->r = r;
+					this->g = g;
+					this->b = b;
+					return *this;
+				}
+
 				float length() 
 				{ 
 					return sqrt(r * r + g * g + b * b);
@@ -151,10 +159,12 @@ namespace YG
 					return v;
 				}
 
-				Color operator=(const Color& u)
+				Color& operator=(const Color& u)
 				{
-					Color v = Color(u);
-					return v;
+					r = u.r;
+					g = u.g;
+					b = u.b;
+					return *this;
 				}
 
 				bool operator==(const Color& u)

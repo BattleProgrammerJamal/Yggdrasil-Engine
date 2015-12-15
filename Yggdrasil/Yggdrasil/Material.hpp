@@ -7,6 +7,7 @@
 #include "Asset.hpp"
 #include "Texture.hpp"
 #include "Shader.hpp"
+#include "Color.hpp"
 
 #include "glew.h"
 #include <SFML/Graphics.hpp>
@@ -47,70 +48,88 @@ namespace YG
 		class Material : public Asset
 		{
 			public:
-				Material(const std::string& vs = std::string(), const std::string& fs = std::string())
+				Math::Color ambient;
+				float ambientIntensity;
+
+				Material(Math::Color ambient = Math::Color(1.0f, 1.0f, 1.0f))
 					: Asset("Material")
 				{
-					if (!vs.empty() && !fs.empty())
-					{
-						m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader(vs, fs)));
-					}
-					else
-					{
-						m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader()));
-						static_cast<Shader*>(m_resources["shader"])->Load(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-					}
+					m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader("Assets/shaders/default.vs", "Assets/shaders/default.fs")));
+					this->ambient = ambient;
+					this->ambientIntensity = 0.6f;
 					Load();
+				}
+
+				Material(const std::string& vs, const std::string& fs)
+					: Asset("Material")
+				{
+					m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader(vs, fs)));
+					ambient.set(1.0f, 1.0f, 1.0f);
+					this->ambientIntensity = 0.6f;
+					Load();
+				}
+
+				~Material()
+				{
+					for (unsigned int i = 0; i < MAXIMUM_TEXTURE; ++i)
+					{
+						if (m_textures[i])
+						{
+							delete m_textures[i];
+						}
+					}
 				}
 
 				void Load()
 				{
 					for (unsigned int i = 0; i < MAXIMUM_TEXTURE; ++i)
 					{
-						std::strstream stream;
-						stream << "texture" << i;
-						m_resources.insert(std::pair<std::string, Resource*>(stream.str(), new Texture(TEXTURE, std::vector<std::string>(), i)));
+						m_textures[i] = new Texture(TEXTURE, std::vector<std::string>(), i);
 					}
 					m_textureLoadingId = 0;
 				}
 
 				Texture& loadTexture(const std::string& path)
 				{
-					std::strstream stream;
-					stream << "texture" << m_textureLoadingId;
-					static_cast<Texture*>(m_resources[stream.str()])->setPaths(std::vector<std::string>{ path });
-					static_cast<Texture*>(m_resources[stream.str()])->Load();
+					m_textures[m_textureLoadingId]->setPaths(std::vector<std::string>{ path });
+					m_textures[m_textureLoadingId]->Load();
 					m_textureLoadingId = (m_textureLoadingId + 1) % MAXIMUM_TEXTURE;
-					return *static_cast<Texture*>(m_resources[stream.str()]);
+					return *m_textures[(m_textureLoadingId - 1) % MAXIMUM_TEXTURE];
 				}
 
 				void Bind()
 				{
 					static_cast<Shader*>(m_resources["shader"])->Bind();
+					GLuint shaderID = static_cast<Shader*>(m_resources["shader"])->getId();
 					for (unsigned int i = 0; i < MAXIMUM_TEXTURE; ++i)
 					{
-						std::strstream stream;
-						stream << "texture" << i;
-						if (!m_resources[stream.str()]) { continue; }
-						static_cast<Texture*>(m_resources[stream.str()])->Bind();
+						m_textures[i]->Bind();
 						std::strstream texName;
 						texName << "u_texture" << i;
-						GLuint texLoc = glGetUniformLocation(static_cast<Shader*>(m_resources["shader"])->getId(), texName.str());
-						glUniform1i(texLoc, static_cast<Texture*>(m_resources[stream.str()])->getId());
+						GLuint texLoc = glGetUniformLocation(shaderID, texName.str());
+						glUniform1i(texLoc, m_textures[i]->getId());
 						std::strstream texRepeat;
 						texRepeat << "u_texture_repeat" << i;
-						GLuint texRepeatLoc = glGetUniformLocation(static_cast<Shader*>(m_resources["shader"])->getId(), texRepeat.str());
-						glUniform2f(texRepeatLoc, static_cast<Texture*>(m_resources[stream.str()])->repeat.x, static_cast<Texture*>(m_resources[stream.str()])->repeat.y);
+						GLuint texRepeatLoc = glGetUniformLocation(shaderID, texRepeat.str());
+						glUniform2f(texRepeatLoc, m_textures[i]->repeat.x, m_textures[i]->repeat.y);
 					}
+
+					BindProperties(shaderID);
+				}
+
+				virtual void BindProperties(GLuint shaderID)
+				{
+					GLuint ambientLocation = glGetUniformLocation(shaderID, "u_material.ambient");
+					glUniform3f(ambientLocation, ambient.r, ambient.g, ambient.b);
+					GLuint ambientIntensityLocation = glGetUniformLocation(shaderID, "u_material.ka");
+					glUniform1f(ambientIntensityLocation, ambientIntensity);
 				}
 
 				void Unbind()
 				{
 					for (unsigned int i = 0; i < MAXIMUM_TEXTURE; ++i)
 					{
-						std::strstream stream;
-						stream << "texture" << i;
-						if (!m_resources[stream.str()]) { continue; }
-						static_cast<Texture*>(m_resources[stream.str()])->Unbind();
+						m_textures[i]->Unbind();
 					}
 					static_cast<Shader*>(m_resources["shader"])->Unbind();
 				}
@@ -123,6 +142,7 @@ namespace YG
 				}
 
 			protected:
+				Texture* m_textures[MAXIMUM_TEXTURE];
 				unsigned int m_textureLoadingId;
 		};
 	};
