@@ -1,4 +1,4 @@
-#version 410
+#version 430
 
 layout(location=0) in vec3 a_position;
 layout(location=1) in vec3 a_normal;
@@ -10,22 +10,13 @@ out vec3 v_normal;
 out vec3 v_tangent;
 out vec2 v_uv;
 
-//layout (std140, binding = 1) uniform Matrices
-layout (std140) uniform Matrices
+layout (std140, binding = 1) uniform Matrices
 {
     mat4 view;
     mat4 proj;
+	mat4 world;
 };
 
-uniform mat4 u_view;
-uniform mat4 u_proj;
-
-uniform mat4 u_translation;
-uniform mat4 u_rotationX;
-uniform mat4 u_rotationY;
-uniform mat4 u_rotationZ;
-uniform mat4 u_scale;
-uniform mat4 u_world;
 uniform float time;
 
 void main(void)
@@ -34,8 +25,7 @@ void main(void)
 	v_normal = a_normal;
 	v_tangent = a_tangent;
 	v_uv = a_uv;
-	mat4 world = u_scale * (u_rotationX * u_rotationY * u_rotationZ) * u_translation;
 	vec4 pos = vec4(a_position, 1.0);
 	
-	gl_Position = u_proj * u_view * world * pos;
+	gl_Position = proj * view * world * pos;
 }

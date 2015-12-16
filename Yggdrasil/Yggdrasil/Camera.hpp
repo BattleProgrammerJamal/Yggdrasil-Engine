@@ -4,6 +4,9 @@
 #include <iostream>
 #include "Matrix4.hpp"
 
+#include "glm.hpp"
+#include "gtx/transform.hpp"
+
 namespace YG
 {
 	namespace Core
@@ -20,8 +23,8 @@ namespace YG
 				float l, r, t, b;
 				float fov, aspect, cnear, cfar;
 				Math::Vector3 eye, target, up;
-				Math::Matrix4 view;
-				Math::Matrix4 proj;
+				glm::mat4 view;
+				glm::mat4 proj;
 
 				Camera(float fov, float aspect, float cnear, float cfar)
 				{
@@ -73,22 +76,22 @@ namespace YG
 					switch (m_type)
 					{
 						case ORTHOGRAPHIC:
-							proj = Math::Matrix4::OrthographicMatrix(l, r, t, b, 0.0f, 1.0f);
+							proj = glm::ortho(l, r, b, t);
 							break;
 
 						case PERSPECTIVE:
-							proj = Math::Matrix4::PerspectiveMatrix(fov, aspect, cnear, cfar);
+							proj = glm::perspective(fov, aspect, cnear, cfar);
 							break;
 
 						default:
-							proj = Math::Matrix4::PerspectiveMatrix(fov, aspect, cnear, cfar);
+							proj = glm::perspective(fov, aspect, cnear, cfar);
 							break;
 					}
 				}
 
 				void updateView()
 				{
-					view = Math::Matrix4::ViewMatrix(eye, target, up);
+					view = glm::lookAt(glm::vec3(eye.x, eye.y, eye.z), glm::vec3(target.x, target.y, target.z), glm::vec3(up.x, up.y, up.z));
 				}
 
 				void update()

@@ -1,4 +1,6 @@
-#version 410
+#version 430
+
+#define MAXIMUM_LIGHT 16
 
 struct MaterialDefault
 {
@@ -8,26 +10,6 @@ struct MaterialDefault
 	float kd;
 };
 
-in vec3 v_position;
-in vec3 v_normal;
-in vec3 v_tangent;
-in vec2 v_uv;
-
-uniform sampler2D u_texture0;
-uniform vec2 u_texture_repeat0;
-uniform float time;
-uniform vec2 u_iScreenSize;
-uniform MaterialDefault u_material;
-
-out vec4 o_color;
-
-//layout (std140, binding = 1) uniform Matrices
-layout (std140) uniform Matrices
-{
-    mat4 view;
-    mat4 proj;
-};
-
 struct Light
 {
 	vec3 position;
@@ -35,30 +17,43 @@ struct Light
 	float intensity;
 };
 
-Light makeLight(vec3 position, vec3 reflectance, float intensity)
-{
-	Light l;
-	l.position = position;
-	l.reflectance = reflectance;
-	l.intensity = intensity;
-	return l;
-}
+in vec3 v_position;
+in vec3 v_normal;
+in vec3 v_tangent;
+in vec2 v_uv;
 
-uniform mat4 u_view;
-uniform mat4 u_proj;
+uniform sampler2D u_texture0;
+uniform float time;
+uniform vec2 u_iScreenSize;
+uniform MaterialDefault u_material;
+uniform Light u_lights[MAXIMUM_LIGHT];
+uniform int u_lightCount;
+
+out vec4 o_color;
+
+layout (std140, binding = 1) uniform Matrices
+{
+    mat4 view;
+    mat4 proj;
+	mat4 world;
+};
 
 void main(void)
 {
-	vec2 uv = vec2(v_uv.x * u_texture_repeat0.x, v_uv.y * u_texture_repeat0.y);
 	vec4 tex = texture(u_texture0, v_uv);
 	float dt = time / 1000.0;	
 	vec3 N = normalize(v_normal);
-	vec3 L = normalize(vec3(0.0, 0.0, 1.0));
-	float NDotL = dot(N, L);
 	
-	vec3 ambient = u_material.ambient * u_material.ka;
-	vec3 diffuse = u_material.diffuse * max(NDotL, 0.0) * u_material.kd;
-	vec3 lighting = ambient + diffuse;
+	vec3 lighting = u_material.ambient * u_material.ka;
+	for(int i = 0; i < u_lightCount; ++i)
+	{
+		vec3 L = normalize(u_lights[i].position);
+		float NDotL = dot(N, L);
+		
+		vec3 diffuse = u_material.diffuse * max(NDotL, 0.0) * u_material.kd;
+		
+		lighting += (u_lights[i].intensity * u_lights[i].reflectance) + diffuse;
+	}
 	
-    o_color = tex * vec4(diffuse, 1.0);
+    o_color = tex * vec4(lighting, 1.0);
 }

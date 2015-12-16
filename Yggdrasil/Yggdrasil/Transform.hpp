@@ -6,6 +6,9 @@
 #include "Matrix4.hpp"
 #include "Quaternion.hpp"
 
+#include "glm.hpp"
+#include "gtx/transform.hpp"
+
 namespace YG
 {
 	namespace Math
@@ -16,7 +19,7 @@ namespace YG
 				Vector3 position;
 				Vector3 rotation;
 				Vector3 scale;
-				Matrix4 world;
+				glm::mat4 world;
 
 				Transform()
 				{
@@ -26,26 +29,23 @@ namespace YG
 				void Translate(const Vector3& u)
 				{
 					position = position + u;
-					updateWorldMatrix();
 				}
 
 				void Rotate(const Vector3& u)
 				{
 					rotation = rotation + u;
-					updateWorldMatrix();
 				}
 
 				void Scale(const Vector3& u)
 				{
 					scale = scale * u;
-					updateWorldMatrix();
 				}
 
 				void updateWorldMatrix()
 				{
-					Matrix4 T = Matrix4::TranslationMatrix(position);
-					Matrix4 R = Matrix4::RotationEulerMatrix(rotation);
-					Matrix4 S = Matrix4::ScaleMatrix(scale);
+					glm::mat4 T = glm::translate(glm::vec3(position.x, position.y, position.z));
+					glm::mat4 R = glm::rotate(rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::rotate(rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+					glm::mat4 S = glm::scale(glm::vec3(scale.x, scale.y, scale.z));
 					world = S * R * T;
 				}
 		};

@@ -10,18 +10,22 @@
 #include "Color.hpp"
 #include "Mesh.hpp"
 #include "Light.hpp"
+#include "RenderTarget.hpp"
 
 #include "glew.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
+
+#include "glm.hpp"
+#include "gtc/type_ptr.hpp"
 
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 3
 
 #define MAXIMUM_LIGHT 16
 
-#define UBO_SUPPORTED false
-#define UBO_SIZE() sizeof(float) * (16 + 16)
+#define UBO_SUPPORTED true
+#define UBO_SIZE() sizeof(float) * (16 + 16 + 16)
 
 namespace YG
 {
@@ -31,6 +35,7 @@ namespace YG
 		{
 			public:
 				sf::Clock clock;
+				float deltaTime;
 
 				Renderer(unsigned int width = 800, unsigned int height = 600, const std::string& title = std::string("OpenGLRenderer"));
 				virtual ~Renderer();
@@ -67,11 +72,11 @@ namespace YG
 
 				GLuint getUBO() const { return m_ubo; }
 
-				Light& addLight(Light *light)
+				Renderer& addLight(Light *light)
 				{
 					m_lights[m_currentLightIndex] = light;
 					m_currentLightIndex = (m_currentLightIndex + 1) % MAXIMUM_LIGHT;
-					return *m_lights[(m_currentLightIndex - 1) % MAXIMUM_LIGHT];
+					return *this;
 				}
 
 				Light& getLight(unsigned int index)
@@ -82,6 +87,8 @@ namespace YG
 			protected:
 				void createDisplay(const std::string& title = "OpenGLRenderer");
 
+				Shader *shadowMapShader;
+				RenderTarget *shadowMap;
 				GLuint m_ubo;
 				sf::Window* m_window;
 				sf::Event m_event;
