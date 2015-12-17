@@ -14,13 +14,10 @@ in vec3 v_normal;
 in vec3 v_tangent;
 in vec2 v_uv;
 
-uniform sampler2D u_shadowMap;
 uniform float time;
 uniform vec2 u_iScreenSize;
 uniform Light u_lights[MAXIMUM_LIGHT];
 uniform int u_lightCount;
-
-out vec4 o_color;
 
 layout (std140, binding = 1) uniform Matrices
 {
@@ -29,7 +26,9 @@ layout (std140, binding = 1) uniform Matrices
 	mat4 world;
 };
 
+layout(location=0) out vec4 o_color;
+
 void main(void)
 {
-	o_color = vec4(v_position.z / gl_DepthRange.far);
+	o_color = vec4(1.0, 0.0, 0.0, 1.0);
 }

@@ -34,7 +34,7 @@ namespace YG
 					this->diffuse = diffuse;
 					this->specular = specular;
 					this->shininess = shininess;
-					this->diffuseIntensity = 1.0f;
+					this->diffuseIntensity = 0.5f;
 					this->specularIntensity = 1.0f;
 					Load();
 				}

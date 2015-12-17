@@ -13,7 +13,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 
-#define MAXIMUM_TEXTURE 16
+#define MAXIMUM_TEXTURE 14
 
 #define DEFAULT_VERTEX_SHADER "#version 330\n" \
 								"layout(location=0) in vec3 a_position;\n" \

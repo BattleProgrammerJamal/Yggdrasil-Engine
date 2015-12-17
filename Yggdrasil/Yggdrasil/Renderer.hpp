@@ -21,7 +21,6 @@
 
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 3
-
 #define MAXIMUM_LIGHT 16
 
 #define UBO_SUPPORTED true
@@ -34,6 +33,10 @@ namespace YG
 		class Renderer
 		{
 			public:
+				bool fog_enabled;
+				float fog_min_distance;
+				float fog_max_distance;
+				Math::Color fog_color;
 				sf::Clock clock;
 				float deltaTime;
 
@@ -87,8 +90,8 @@ namespace YG
 			protected:
 				void createDisplay(const std::string& title = "OpenGLRenderer");
 
-				Shader *shadowMapShader;
-				RenderTarget *shadowMap;
+				GLuint bakeShadowMap(Scene *scene, Camera *camera, Light& L);
+
 				GLuint m_ubo;
 				sf::Window* m_window;
 				sf::Event m_event;

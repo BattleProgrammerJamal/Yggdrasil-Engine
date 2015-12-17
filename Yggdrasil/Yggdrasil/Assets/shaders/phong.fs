@@ -32,6 +32,14 @@ uniform vec2 u_iScreenSize;
 uniform MaterialDefault u_material;
 uniform Light u_lights[MAXIMUM_LIGHT];
 uniform int u_lightCount;
+uniform vec3 u_cameraPosition;
+uniform float u_fogMinDistance;
+uniform float u_fogMaxDistance;
+uniform vec3 u_fogColor;
+uniform int u_fogEnabled;
+
+const float dmin = 0.0;
+const float dmax = 20.0;
 
 out vec4 o_color;
 
@@ -44,7 +52,7 @@ layout (std140, binding = 1) uniform Matrices
 
 void main(void)
 {
-	vec4 shadowMap = texture(u_shadowMap, v_uv);
+	vec4 shadowMap = texture(u_shadowMap, vec2(0.0, 0.0));
 	vec4 tex = texture(u_texture0, v_uv);
 	float dt = time / 1000.0;	
 	vec3 N = normalize(v_normal);
@@ -54,6 +62,9 @@ void main(void)
 	for(int i = 0; i < u_lightCount; ++i)
 	{
 		vec3 L = normalize(u_lights[i].position);
+		L.x += cos(i * dt);
+		L.y += cos(i * 2.0 * dt);
+		L.z += sin(i * 4.0 * dt);
 		vec3 H = (L + V) / length(L + V);
 		float NDotL = dot(N, L);
 		
@@ -65,16 +76,20 @@ void main(void)
 		}
 		vec3 specular = u_material.specular * specularTerm * u_material.ks;
 		
-		lighting += (u_lights[i].intensity * u_lights[i].reflectance) + diffuse + specular;
+		vec3 kl = u_lights[i].reflectance * u_lights[i].intensity;
+		
+		lighting += diffuse + specular;
+		lighting *= kl;
 	}
 	
-	vec4 pos = world * vec4(v_position, 1.0);
-	if(pos.z / pos.w < gl_FragDepth)
+	vec4 col = tex + vec4(lighting, 1.0);
+	
+	float att = 0.0;
+	if(u_fogEnabled == 1)
 	{
-		o_color = vec4(1.0, 0.0, 0.0, 1.0);
+		float d = length(u_cameraPosition - v_position);
+		att = smoothstep(u_fogMinDistance, u_fogMaxDistance, d);
 	}
-	else
-	{
-		o_color = vec4(1.0, 1.0, 0.0, 1.0);
-	}
+	o_color = mix(col, vec4(u_fogColor, 1.0), att);
+	//o_color = shadowMap;
 }
