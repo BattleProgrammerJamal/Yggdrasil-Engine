@@ -52,7 +52,7 @@ layout (std140, binding = 1) uniform Matrices
 
 void main(void)
 {
-	vec4 shadowMap = texture(u_shadowMap, vec2(0.0, 0.0));
+	vec4 shadowMap = texture(u_shadowMap, v_uv);
 	vec4 tex = texture(u_texture0, v_uv);
 	float dt = time / 1000.0;	
 	vec3 N = normalize(v_normal);
@@ -90,6 +90,7 @@ void main(void)
 		float d = length(u_cameraPosition - v_position);
 		att = smoothstep(u_fogMinDistance, u_fogMaxDistance, d);
 	}
-	o_color = mix(col, vec4(u_fogColor, 1.0), att);
-	//o_color = shadowMap;
+	//o_color = mix(col, vec4(u_fogColor, 1.0), att);
+	o_color = vec4(0.5, 0.5, 0.5, 1.0) * u_material.diffuse * dot(N, vec3(-1.5 + -4.0 * dt * -0.2, -2.0 * dt * 0.25, 2.0 * dt * -0.5)) +
+	shadowMap;
 }

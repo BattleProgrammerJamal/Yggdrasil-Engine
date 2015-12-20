@@ -92,6 +92,7 @@ namespace YG
 
 				GLuint bakeShadowMap(Scene *scene, Camera *camera, Light& L);
 
+				RenderTarget *m_shadowMap;
 				GLuint m_ubo;
 				sf::Window* m_window;
 				sf::Event m_event;

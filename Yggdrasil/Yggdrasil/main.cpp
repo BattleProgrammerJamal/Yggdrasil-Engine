@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	while (renderer->render(scene, camera))
 	{
-		static_cast<PhongMaterial*>(material2)->shininess = 100.0f * cos(renderer->deltaTime);
+		//static_cast<PhongMaterial*>(material2)->shininess = 100.0f * cos(renderer->deltaTime);
 	}
 
 	delete renderer;
