@@ -51,7 +51,7 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 	fog_max_distance = 100.0f;
 	fog_color.set(0.4f, 0.4f, 0.4f);
 
-	m_shadowMap = new RenderTarget(256, 512, 0, { GL_COLOR_ATTACHMENT0 });
+	m_shadowMap = new RenderTarget(1024, 1024);
 }
 
 Renderer::~Renderer()
@@ -84,14 +84,14 @@ void Renderer::createDisplay(const std::string& title)
 	}
 }
 
-GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L)
+GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *shadowMapShader)
 {
-	GLuint shaderID = L.getShadowMapShader()->getId();
+	GLuint shaderID = shadowMapShader->getId();
 	m_shadowMap->Bind();
 	glUseProgram(shaderID);
 
-	glViewport(512, 0, 256, m_height);
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glViewport(0, 0, m_shadowMap->getWidth(), m_shadowMap->getHeight());
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	for (Actor* actor : scene->getChildren())
@@ -103,22 +103,17 @@ GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L)
 			Geometry *geo = mesh->getGeometry();
 			Material *mat = mesh->getMaterial();
 			if (geo == 0 || mat == 0) { continue; }
-			GLuint shaderID = mat->getShader();
 
-			if (UBO_SUPPORTED == false)
-			{
-				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_world"), 1, GL_FALSE, glm::value_ptr(mesh->transform.world));
-				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_view"), 1, GL_FALSE, glm::value_ptr(camera->view));
-				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_proj"), 1, GL_FALSE, glm::value_ptr(camera->proj));
-			}
-			else
-			{
-				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(camera->view));
-				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
-				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(mesh->transform.world));
-				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			}
+			glm::mat4 shadowMapWorld = mesh->transform.world;
+			glm::mat4 shadowMapProj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+			glm::mat4 shadowMapView = glm::lookAt(glm::vec3(-L.direction.x, -L.direction.y, -L.direction.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			m_shadowMapWVP = shadowMapProj * shadowMapView * shadowMapWorld;
+
+			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(shadowMapView));
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(shadowMapProj));
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(shadowMapWorld));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			unsigned int counterLightActive = 0;
 			for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
@@ -134,7 +129,7 @@ GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L)
 				GLuint lightReflLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
 				GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
 
-				glUniform3f(lightPosLocation, m_lights[i]->position.x, m_lights[i]->position.y, m_lights[i]->position.z);
+				glUniform3f(lightPosLocation, m_lights[i]->direction.x, m_lights[i]->direction.y, m_lights[i]->direction.z);
 				glUniform3f(lightReflLocation, m_lights[i]->reflectance.r, m_lights[i]->reflectance.g, m_lights[i]->reflectance.b);
 				glUniform1f(lightIntenLocation, m_lights[i]->intensity);
 			}
@@ -203,9 +198,19 @@ bool Renderer::render(Scene *scene, Camera *camera)
 		}
 	}
 
-	GLuint shadowMap = bakeShadowMap(scene, camera, *m_lights[0]);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	GLuint shadowMap;
+	for (unsigned int i = 0; i < 16; ++i)
+	{
+		if (m_lights[i] == 0){ continue; }
+		if (m_lights[i]->isCastShadow() == false) { continue; }
 
-	glViewport(0, 0, 512, m_height);
+		shadowMap = bakeShadowMap(scene, camera, *m_lights[i]);
+	}
+	glDisable(GL_BLEND);
+
+	glViewport(0, 0, m_width, m_height);
 	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -222,31 +227,31 @@ bool Renderer::render(Scene *scene, Camera *camera)
 
 			mat->Bind();
 
-			glActiveTexture(GL_TEXTURE0 + 14); 
+			glm::mat4 biasMatrix(
+				0.5, 0.0, 0.0, 0.0,
+				0.0, 0.5, 0.0, 0.0,
+				0.0, 0.0, 0.5, 0.0,
+				0.5, 0.5, 0.5, 1.0);
+			glm::mat4 depthBiasWVP = biasMatrix * m_shadowMapWVP;
+
+			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_depthBiasWVP"), 1, GL_FALSE, glm::value_ptr(depthBiasWVP));
+
+			glActiveTexture(GL_TEXTURE0 + 9);
 			glBindTexture(GL_TEXTURE_2D, shadowMap);
-
 			GLuint shadowMapLocation = glGetUniformLocation(shaderID, "u_shadowMap");
-			glUniform1i(shadowMapLocation, shadowMap);
+			glUniform1i(shadowMapLocation, 9);
 
-			if (UBO_SUPPORTED == false)
-			{
-				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_world"), 1, GL_FALSE, glm::value_ptr(mesh->transform.world));
-				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_view"), 1, GL_FALSE, glm::value_ptr(camera->view));
-				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_proj"), 1, GL_FALSE, glm::value_ptr(camera->proj));
-			}
-			else
-			{
-				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(camera->view));
-				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
-				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(mesh->transform.world));
-				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			}
+			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(camera->view));
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(mesh->transform.world));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			unsigned int counterLightActive = 0;
 			for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
 			{
-				if (m_lights[i]) { counterLightActive = (i == 0) ? counterLightActive : (counterLightActive + 1); } else { continue; }
+				if (m_lights[i]) { counterLightActive = (i == 0) ? counterLightActive : (counterLightActive + 1); }
+				else { continue; }
 
 				std::stringstream stream1, stream2, stream3;
 				stream1 << "u_lights[" << counterLightActive << "].position";
@@ -256,7 +261,7 @@ bool Renderer::render(Scene *scene, Camera *camera)
 				GLuint lightReflLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
 				GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
 
-				glUniform3f(lightPosLocation, m_lights[i]->position.x, m_lights[i]->position.y, m_lights[i]->position.z);
+				glUniform3f(lightPosLocation, m_lights[i]->direction.x, m_lights[i]->direction.y, m_lights[i]->direction.z);
 				glUniform3f(lightReflLocation, m_lights[i]->reflectance.r, m_lights[i]->reflectance.g, m_lights[i]->reflectance.b);
 				glUniform1f(lightIntenLocation, m_lights[i]->intensity);
 			}
@@ -295,11 +300,10 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glActiveTexture(GL_TEXTURE0);
 			mat->Unbind();
 		}
 	}
+	
 
 	m_window->display();
 

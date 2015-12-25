@@ -26,6 +26,7 @@ in vec3 v_tangent;
 in vec2 v_uv;
 
 uniform sampler2D u_shadowMap;
+uniform mat4 u_depthBiasWVP;
 uniform sampler2D u_texture0;
 uniform float time;
 uniform vec2 u_iScreenSize;
@@ -52,7 +53,8 @@ layout (std140, binding = 1) uniform Matrices
 
 void main(void)
 {
-	vec4 shadowMap = texture(u_shadowMap, v_uv);
+	vec4 shadowMapUVS = u_depthBiasWVP * (world * vec4(v_position, 1.0));
+	vec4 shadowMap = texture(u_shadowMap, shadowMapUVS.xy);
 	vec4 tex = texture(u_texture0, v_uv);
 	float dt = time / 1000.0;	
 	vec3 N = normalize(v_normal);
@@ -62,9 +64,6 @@ void main(void)
 	for(int i = 0; i < u_lightCount; ++i)
 	{
 		vec3 L = normalize(u_lights[i].position);
-		L.x += cos(i * dt);
-		L.y += cos(i * 2.0 * dt);
-		L.z += sin(i * 4.0 * dt);
 		vec3 H = (L + V) / length(L + V);
 		float NDotL = dot(N, L);
 		
@@ -90,7 +89,16 @@ void main(void)
 		float d = length(u_cameraPosition - v_position);
 		att = smoothstep(u_fogMinDistance, u_fogMaxDistance, d);
 	}
-	//o_color = mix(col, vec4(u_fogColor, 1.0), att);
-	o_color = vec4(0.5, 0.5, 0.5, 1.0) * u_material.diffuse * dot(N, vec3(-1.5 + -4.0 * dt * -0.2, -2.0 * dt * 0.25, 2.0 * dt * -0.5)) +
-	shadowMap;
+	
+	vec4 wPos = world * vec4(v_position, 1.0);
+	float zDepth = wPos.z / wPos.w; 
+	
+	float bias = 0.005, visibility = 1.0;
+	if(shadowMap.z > shadowMapUVS.z - bias)
+	{
+		visibility = 0.5;
+		
+	}
+	
+	o_color = visibility * mix(col, vec4(u_fogColor, 1.0), att);
 }

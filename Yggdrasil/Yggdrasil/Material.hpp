@@ -13,8 +13,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 
-#define MAXIMUM_TEXTURE 14
-
 #define DEFAULT_VERTEX_SHADER "#version 330\n" \
 								"layout(location=0) in vec3 a_position;\n" \
 								"layout(location=1) in vec3 a_normal;\n" \
@@ -107,7 +105,8 @@ namespace YG
 						std::strstream texName;
 						texName << "u_texture" << i;
 						GLuint texLoc = glGetUniformLocation(shaderID, texName.str());
-						glUniform1i(texLoc, m_textures[i]->getId());
+						GLuint unit = m_textures[i]->getUnit();
+						glUniform1i(texLoc, unit);
 						std::strstream texRepeat;
 						texRepeat << "u_texture_repeat" << i;
 						GLuint texRepeatLoc = glGetUniformLocation(shaderID, texRepeat.str());

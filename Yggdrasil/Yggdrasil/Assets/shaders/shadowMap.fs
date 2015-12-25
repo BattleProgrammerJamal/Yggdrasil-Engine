@@ -26,9 +26,9 @@ layout (std140, binding = 1) uniform Matrices
 	mat4 world;
 };
 
-layout(location=1) out vec4 o_color;
+out vec4 o_color;
 
 void main(void)
 {
-	o_color = vec4(1.0, 0.0, 0.0, 1.0);
+	o_color = vec4(vec3(gl_FragCoord.z), 1.0);
 }

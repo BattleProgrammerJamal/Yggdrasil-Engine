@@ -11,6 +11,9 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 
+#define MAXIMUM_TEXTURE 8
+#define TEXTURE_OFFSET 7
+
 namespace YG
 {
 	namespace Core

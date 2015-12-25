@@ -15,13 +15,13 @@ namespace YG
 		class RenderTarget : public Asset
 		{
 			public:
-				RenderTarget(GLuint width = 512, GLuint height = 512, GLuint unit = 0, std::vector<GLuint> attachements = std::vector<GLuint>())
+				RenderTarget(GLuint width = 512, GLuint height = 512, GLuint unit = 0, GLuint attachement = 0)
 					: Asset("RenderTarget")
 				{
 					m_width = width;
 					m_height = height;
 					m_unit = unit;
-					m_attachements = attachements;
+					m_attachement = attachement;
 					m_loaded = false;
 					Load();
 				}
@@ -40,7 +40,7 @@ namespace YG
 
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_attachement, GL_TEXTURE_2D, m_texture, 0);
 
 					glGenRenderbuffers(1, &m_rbo);
 					glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
@@ -50,7 +50,6 @@ namespace YG
 					
 					glBindRenderbuffer(GL_RENDERBUFFER, 0);
 					glBindTexture(GL_TEXTURE_2D, 0);
-					//glDrawBuffers(1, &m_attachements[0]);
 					glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 					if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -93,8 +92,8 @@ namespace YG
 
 				void setSize(GLuint width, GLuint height) { m_width = width; m_height = height; }
 
-				std::vector<GLuint> getAttachements() const { return m_attachements; }
-				void setAttachement(std::vector<GLuint> attachements) { m_attachements = attachements; }
+				GLuint getAttachement() const { return m_attachement; }
+				void setAttachement(GLuint attachement) { m_attachement = attachement; }
 
 				GLuint getFBO() const { return m_fbo; }
 
@@ -107,7 +106,7 @@ namespace YG
 				GLuint m_unit;
 				GLuint m_width;
 				GLuint m_height;
-				std::vector<GLuint> m_attachements;
+				GLuint m_attachement;
 				GLuint m_fbo;
 				GLuint m_rbo;
 				GLuint m_texture;

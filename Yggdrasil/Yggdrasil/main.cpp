@@ -14,11 +14,11 @@ int main(int argc, char **argv)
 
 	renderer->fog_enabled = true;
 
-	renderer->addLight(new Core::Light(Math::Vector3(0.5f, -0.5f, -1.0f), Math::Color(1.0f, 1.0f, 1.0f), 1.0f))
-		.addLight(new Core::Light(Math::Vector3(0.5f, -0.5f, -1.0f), Math::Color(1.0f, 1.0f, 1.0f), 5.0f))
-		.addLight(new Core::Light(Math::Vector3(-0.5f, 0.5f, -1.0f), Math::Color(1.0f, 0.0f, 1.0f), 1.0f))
-		.addLight(new Core::Light(Math::Vector3(1.0f, 0.5f, 1.0f), Math::Color(0.0f, 1.0f, 1.0f), 1.0f))
-		.addLight(new Core::Light(Math::Vector3(-0.5f, -0.5f, -1.0f), Math::Color(1.0f, 1.0f, 0.0f), 1.0f));
+	renderer->addLight(new Core::Light(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3(0.5f, -0.5f, -1.0f), Math::Color(1.0f, 1.0f, 1.0f), 1.0f))
+		.addLight(new Core::Light(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3(0.5f, 0.5f, -1.0f), Math::Color(1.0f, 1.0f, 1.0f), 5.0f))
+		.addLight(new Core::Light(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3(4.5f, 0.5f, -10.0f), Math::Color(1.0f, 0.0f, 1.0f), 1.0f))
+		.addLight(new Core::Light(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3(12.0f, 0.5f, 5.0f), Math::Color(0.0f, 1.0f, 1.0f), 1.0f))
+		.addLight(new Core::Light(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3(-0.5f, -5.5f, -1.0f), Math::Color(1.0f, 1.0f, 0.0f), 1.0f));
 	
 	Core::Material *material = new Core::PhongMaterial(Math::Color(1.0f, 1.0f, 1.0f), Math::Color(1.0f, 0.0f, 0.0f), Math::Color(1.0f, 1.0f, 1.0f), 80.0f);
 	material->ambientIntensity = 0.5f;
@@ -50,14 +50,13 @@ int main(int argc, char **argv)
 	ground->transform.rotation.x = Math::Rad(45.0f);
 	scene->Add(ground);
 
-	Core::Mesh *wall = new Core::Mesh(new Core::PlaneGeometry(8.0f), material4);
-	wall->transform.rotation.x = Math::Rad(-5.0f);
-	wall->transform.Translate(Math::Vector3(0.0f, 7.5f, 3.0f));
-	scene->Add(wall);
-
 	while (renderer->render(scene, camera))
 	{
-		//static_cast<PhongMaterial*>(material2)->shininess = 100.0f * cos(renderer->deltaTime);
+		float dt = renderer->clock.getElapsedTime().asMilliseconds() / 1000.0f;
+		sphere->transform.position.x = 1.25f * cos(dt);
+
+		sphere2->transform.position.x = -2.25f * cos(dt);
+		sphere2->transform.position.z = 1.25f * cos(dt);
 	}
 
 	delete renderer;

@@ -14,8 +14,8 @@ namespace YG
 		class DirectionnalLight : public Light
 		{
 			public:
-				DirectionnalLight(Math::Vector3 position = Math::Vector3(), Math::Color reflectance = Math::Color(1.0f, 1.0f, 1.0f), float intensity = 1.0f)
-					: Light(position, reflectance, intensity)
+				DirectionnalLight(Math::Vector3 position = Math::Vector3(), Math::Vector3 direction = Math::Vector3(), Math::Color reflectance = Math::Color(1.0f, 1.0f, 1.0f), float intensity = 1.0f)
+					: Light(position, direction, reflectance, intensity)
 				{
 				}
 		};

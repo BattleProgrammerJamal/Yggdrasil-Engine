@@ -6,6 +6,7 @@
 #include <strstream>
 #include <sstream>
 #include "Scene.hpp"
+#include "Shader.hpp"
 #include "Camera.hpp"
 #include "Color.hpp"
 #include "Mesh.hpp"
@@ -23,7 +24,6 @@
 #define OPENGL_MINOR_VERSION 3
 #define MAXIMUM_LIGHT 16
 
-#define UBO_SUPPORTED true
 #define UBO_SIZE() sizeof(float) * (16 + 16 + 16)
 
 namespace YG
@@ -90,9 +90,10 @@ namespace YG
 			protected:
 				void createDisplay(const std::string& title = "OpenGLRenderer");
 
-				GLuint bakeShadowMap(Scene *scene, Camera *camera, Light& L);
+				GLuint bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *shadowMapShader = new Shader("Assets/shaders/shadowMap.vs", "Assets/shaders/shadowMap.fs"));
 
 				RenderTarget *m_shadowMap;
+				glm::mat4 m_shadowMapWVP;
 				GLuint m_ubo;
 				sf::Window* m_window;
 				sf::Event m_event;
