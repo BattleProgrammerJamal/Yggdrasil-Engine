@@ -15,12 +15,11 @@ namespace YG
 		class RenderTarget : public Asset
 		{
 			public:
-				RenderTarget(GLuint width = 512, GLuint height = 512, GLuint unit = 0, GLuint attachement = 0)
+				RenderTarget(GLuint width = 512, GLuint height = 512, GLuint attachement = 0)
 					: Asset("RenderTarget")
 				{
 					m_width = width;
 					m_height = height;
-					m_unit = unit;
 					m_attachement = attachement;
 					m_loaded = false;
 					Load();
@@ -81,9 +80,6 @@ namespace YG
 
 				bool isLoaded() const { return m_loaded; }
 
-				GLuint getUnit() const { return m_unit; }
-				void setUnit(GLuint unit) { m_unit = unit; }
-
 				GLuint getWidth() const { return m_width; }
 				void setWidth(GLuint width) { m_width = width; }
 
@@ -103,7 +99,6 @@ namespace YG
 
 			protected:
 				bool m_loaded;
-				GLuint m_unit;
 				GLuint m_width;
 				GLuint m_height;
 				GLuint m_attachement;

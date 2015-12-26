@@ -50,6 +50,9 @@ int main(int argc, char **argv)
 	ground->transform.rotation.x = Math::Rad(45.0f);
 	scene->Add(ground);
 
+	renderer->enablePostProcess(true);
+	renderer->setPostProcessShader("Assets/shaders/postProcessTest.vs", "Assets/shaders/postProcessTest.fs");
+
 	while (renderer->render(scene, camera))
 	{
 		float dt = renderer->clock.getElapsedTime().asMilliseconds() / 1000.0f;

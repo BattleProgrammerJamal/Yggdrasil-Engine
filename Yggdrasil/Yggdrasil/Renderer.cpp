@@ -51,7 +51,40 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 	fog_max_distance = 100.0f;
 	fog_color.set(0.4f, 0.4f, 0.4f);
 
-	m_shadowMap = new RenderTarget(1024, 1024);
+	m_shadowMap = new RenderTarget(SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
+	m_postProcessPass = new RenderTarget(DEFAULT_POST_PROCESS_RT_WIDTH, DEFAULT_POST_PROCESS_RT_HEIGHT);
+	m_postProcessShader = new Shader(DEFAULT_POST_PROCESS_VS, DEFAULT_POST_PROCESS_FS);
+
+	GLsizei stride = static_cast<GLsizei>(sizeof(float) * 4);
+	std::vector<float> vertice = {
+		-1.0f, -1.0f,	0.0f, 0.0f,
+		-1.0f, 1.0f,	0.0f, 1.0f,	
+		1.0f, -1.0f,	1.0f, 0.0f,
+		1.0f, 1.0f,		1.0f, 1.0f
+	};
+	std::vector<GLuint> indices = { 0, 1, 2, 3 };
+
+	GLuint vbo;
+	glGenVertexArrays(1, &m_postProcessVAO);
+	glBindVertexArray(m_postProcessVAO);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* vertice.size(), (const void*)&vertice[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET(0));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET(2));
+
+	glBindVertexArray(0);
+
+	glGenBuffers(1, &m_postProcessIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_postProcessIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* indices.size(), (const void*)&indices[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	m_postProcessEnabled = false;
 }
 
 Renderer::~Renderer()
@@ -196,6 +229,11 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			m_height = windowSize.y;
 			glViewport(0, 0, m_width, m_height);
 		}
+
+		if (m_event.type == sf::Event::KeyPressed && m_event.key.code == sf::Keyboard::P)
+		{
+			m_postProcessEnabled = !m_postProcessEnabled;
+		}
 	}
 
 	glEnable(GL_BLEND);
@@ -210,7 +248,8 @@ bool Renderer::render(Scene *scene, Camera *camera)
 	}
 	glDisable(GL_BLEND);
 
-	glViewport(0, 0, m_width, m_height);
+	if (m_postProcessEnabled){  m_postProcessPass->Bind(); }
+	glViewport(0, 0, m_postProcessPass->getWidth(), m_postProcessPass->getHeight());
 	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -303,7 +342,29 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			mat->Unbind();
 		}
 	}
-	
+	if (m_postProcessEnabled)
+	{
+		m_postProcessPass->Unbind();
+
+		glViewport(0, 0, m_width, m_height);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		m_postProcessShader->Bind();
+		glBindVertexArray(m_postProcessVAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_postProcessIBO);
+
+		glActiveTexture(GL_TEXTURE0 + 14);
+		glBindTexture(GL_TEXTURE_2D, m_postProcessPass->getTexture());
+		GLuint screenTextureLocation = glGetUniformLocation(m_postProcessShader->getId(), "u_sceneTexture");
+		glUniform1i(screenTextureLocation, 14);
+
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const void*)0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		m_postProcessShader->Unbind();
+	}
 
 	m_window->display();
 

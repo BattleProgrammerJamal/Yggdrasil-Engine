@@ -29,6 +29,10 @@ namespace YG
 
 				void Load()
 				{
+					if (m_vs != 0) { glDeleteShader(m_vs); }
+					if (m_fs != 0) { glDeleteShader(m_fs); }
+					if (m_gs != 0) { glDeleteShader(m_gs); }
+
 					m_loaded = false;
 
 					if (!m_vsPath.empty())
@@ -184,6 +188,9 @@ namespace YG
 				std::string getVertexShaderPath() const { return m_vsPath; }
 				std::string getFragmentShaderPath() const { return m_fsPath; }
 				std::string getGeometryShaderPath() const { return m_gsPath; }
+
+				void setVertexShaderPath(const std::string& vs) { m_vsPath = vs; }
+				void setFragmentShaderPath(const std::string& fs) { m_fsPath = fs; }
 
 				GLuint getId() { return m_id; }
 
