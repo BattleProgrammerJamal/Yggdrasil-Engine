@@ -3,7 +3,7 @@
 using namespace YG;
 using namespace Core;
 
-Renderer::Renderer(unsigned int width, unsigned int height, const std::string& title)
+Renderer::Renderer(unsigned int width, unsigned int height, const std::string& title, bool fullscreen)
 {
 	m_width = width;
 	m_height = height;
@@ -15,7 +15,7 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 		m_lights[i] = 0;
 	}
 
-	createDisplay(title);
+	createDisplay(title, fullscreen);
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
@@ -85,6 +85,79 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	m_postProcessEnabled = false;
+
+	GLsizei stride2 = static_cast<GLsizei>(sizeof(float) * 3);
+	std::vector<float> vertice2 = {
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f
+	};
+	std::vector<GLuint> indices2;
+	for (unsigned int i = 0; i < vertice2.size(); ++i){ indices2.push_back(i); }
+	
+	GLuint vbo2;
+	glGenVertexArrays(1, &m_skyboxVAO);
+	glBindVertexArray(m_skyboxVAO);
+	glGenBuffers(1, &vbo2);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* vertice2.size(), (const void*)&vertice2[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride2, BUFFER_OFFSET(0));
+
+	glBindVertexArray(0);
+
+	glGenBuffers(1, &m_skyboxIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_skyboxIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* indices2.size(), (const void*)&indices2[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	m_skyboxEnabled = true;
+	std::vector<std::string> paths = {
+		DEFAULT_SKYBOX_RIGHT,
+		DEFAULT_SKYBOX_LEFT,
+		DEFAULT_SKYBOX_TOP,
+		DEFAULT_SKYBOX_BOTTOM,
+		DEFAULT_SKYBOX_BACK,
+		DEFAULT_SKYBOX_FRONT
+	};
+	m_skyboxCubemap = new Texture(CUBEMAP, paths, 7);
+	m_skyboxCubemap->Load();
+	m_skyboxShader = new Shader(DEFAULT_SKYBOX_VS, DEFAULT_SKYBOX_FS);
 }
 
 Renderer::~Renderer()
@@ -96,10 +169,17 @@ Renderer::~Renderer()
 			delete m_lights[i];
 		}
 	}
+
+	for (unsigned int i = 0; i < m_keyPressEvents.size(); ++i)
+	{
+		delete m_keyPressEvents.at(i);
+	}
 }
 
-void Renderer::createDisplay(const std::string& title)
+void Renderer::createDisplay(const std::string& title, bool fullscreen)
 {
+	m_fullscreen = fullscreen;
+
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
 	settings.stencilBits = 8;
@@ -230,9 +310,12 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			glViewport(0, 0, m_width, m_height);
 		}
 
-		if (m_event.type == sf::Event::KeyPressed && m_event.key.code == sf::Keyboard::P)
+		if (m_event.type == sf::Event::KeyPressed)
 		{
-			m_postProcessEnabled = !m_postProcessEnabled;
+			for (OnKeyPress *evt : m_keyPressEvents)
+			{
+				(*evt)(m_event.key.code);
+			}
 		}
 	}
 
@@ -248,10 +331,57 @@ bool Renderer::render(Scene *scene, Camera *camera)
 	}
 	glDisable(GL_BLEND);
 
-	if (m_postProcessEnabled){  m_postProcessPass->Bind(); }
-	glViewport(0, 0, m_postProcessPass->getWidth(), m_postProcessPass->getHeight());
+	if (m_postProcessEnabled)
+	{ 
+		m_postProcessPass->Bind(); 
+		glViewport(0, 0, m_postProcessPass->getWidth(), m_postProcessPass->getHeight());
+	}
+	else
+	{
+		if (!m_fullscreen)
+		{
+			sf::Vector2u windowSize = m_window->getSize();
+			glViewport(0, 0, windowSize.x, windowSize.y);
+		}
+		else
+		{
+			glViewport(0, 0, m_width, m_height);
+		}
+	}
 	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	if (m_skyboxEnabled)
+	{
+		glDepthMask(GL_FALSE);
+		m_skyboxShader->Bind();
+		glActiveTexture(GL_TEXTURE0 + 7);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
+		GLuint skyboxLocation = glGetUniformLocation(m_skyboxShader->getId(), "u_skybox");
+		glUniform1i(skyboxLocation, 7);
+
+		glBindVertexArray(m_skyboxVAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_skyboxIBO);
+		
+		glm::mat4 world = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(glm::mat3(camera->view));
+
+		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(view));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(world));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		glUniform1f(glGetUniformLocation(m_skyboxShader->getId(), "time"), (float)clock.getElapsedTime().asMilliseconds());
+
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (const void*)0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		m_skyboxShader->Unbind();
+		glDepthMask(GL_TRUE);
+	}
 
 	for (Actor* actor : scene->getChildren())
 	{
@@ -358,6 +488,8 @@ bool Renderer::render(Scene *scene, Camera *camera)
 		glBindTexture(GL_TEXTURE_2D, m_postProcessPass->getTexture());
 		GLuint screenTextureLocation = glGetUniformLocation(m_postProcessShader->getId(), "u_sceneTexture");
 		glUniform1i(screenTextureLocation, 14);
+
+		glUniform1f(glGetUniformLocation(m_postProcessShader->getId(), "time"), (float)clock.getElapsedTime().asMilliseconds());
 
 		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const void*)0);
 

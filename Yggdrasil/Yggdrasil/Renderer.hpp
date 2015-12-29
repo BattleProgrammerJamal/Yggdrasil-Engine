@@ -32,12 +32,28 @@
 #define SHADOW_MAP_WIDTH 1024
 #define SHADOW_MAP_HEIGHT 1024
 
+#define DEFAULT_SKYBOX_VS "Assets/shaders/skybox.vs"
+#define DEFAULT_SKYBOX_FS "Assets/shaders/skybox.fs"
+#define DEFAULT_SKYBOX_TOP "Assets/textures/skybox/top.jpg"
+#define DEFAULT_SKYBOX_BOTTOM "Assets/textures/skybox/bottom.jpg"
+#define DEFAULT_SKYBOX_LEFT "Assets/textures/skybox/left.jpg"
+#define DEFAULT_SKYBOX_RIGHT "Assets/textures/skybox/right.jpg"
+#define DEFAULT_SKYBOX_BACK "Assets/textures/skybox/back.jpg"
+#define DEFAULT_SKYBOX_FRONT "Assets/textures/skybox/front.jpg"
+
 #define UBO_SIZE() sizeof(float) * (16 + 16 + 16)
 
 namespace YG
 {
 	namespace Core
 	{
+		struct OnKeyPress
+		{
+			virtual void operator()(sf::Keyboard::Key key)
+			{
+			}
+		};
+
 		class Renderer
 		{
 			public:
@@ -48,7 +64,7 @@ namespace YG
 				sf::Clock clock;
 				float deltaTime;
 
-				Renderer(unsigned int width = 800, unsigned int height = 600, const std::string& title = std::string("OpenGLRenderer"));
+				Renderer(unsigned int width = 800, unsigned int height = 600, const std::string& title = std::string("OpenGLRenderer"), bool fullscreen = false);
 				virtual ~Renderer();
 
 				bool render(Scene *scene, Camera *camera);
@@ -95,9 +111,8 @@ namespace YG
 					return *m_lights[index % MAXIMUM_LIGHT];
 				}
 
-				void setPostProcessShader(std::string vs, std::string fs)
+				void setPostProcessShader(std::string fs)
 				{
-					m_postProcessShader->setVertexShaderPath(vs);
 					m_postProcessShader->setFragmentShaderPath(fs);
 					m_postProcessShader->Load();
 				}
@@ -106,12 +121,34 @@ namespace YG
 
 				void enablePostProcess(bool state) { m_postProcessEnabled = state; }
 
+				bool isSkyboxEnabled() const { return m_skyboxEnabled; }
+
+				void enableSkybox(bool state) { m_skyboxEnabled = state; }
+
+				void setSkybox(std::string right, std::string left, std::string top, std::string bottom, std::string back, std::string front)
+				{
+					std::vector<std::string> paths = { right, left, top, bottom, back, front };
+					m_skyboxCubemap = new Texture(CUBEMAP, paths, 7);
+					m_skyboxCubemap->Load();
+				}
+
+				void addKeypressEvent(OnKeyPress *evt)
+				{
+					m_keyPressEvents.push_back(evt);
+				}
+
 			protected:
-				void createDisplay(const std::string& title = "OpenGLRenderer");
+				void createDisplay(const std::string& title = "OpenGLRenderer", bool fullscreen = false);
 
 				GLuint bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *shadowMapShader = new Shader("Assets/shaders/shadowMap.vs", "Assets/shaders/shadowMap.fs"));
 
+				std::vector<OnKeyPress*> m_keyPressEvents;
 				bool m_postProcessEnabled;
+				bool m_skyboxEnabled;
+				GLuint m_skyboxVAO;
+				GLuint m_skyboxIBO;
+				Shader *m_skyboxShader;
+				Texture *m_skyboxCubemap;
 				GLuint m_postProcessVAO;
 				GLuint m_postProcessIBO;
 				RenderTarget *m_postProcessPass;

@@ -38,6 +38,14 @@ namespace YG
 					repeat.x = repeat.y = 1.0f;
 				}
 
+				~Texture()
+				{
+					if (m_texture)
+					{
+						glDeleteTextures(1, &m_texture);
+					}
+				}
+
 				void Load()
 				{
 					m_loaded = false;
@@ -74,6 +82,7 @@ namespace YG
 							case CUBEMAP:
 								if (images.size() >= 6)
 									glGenTextures(1, &m_texture);
+									glActiveTexture(GL_TEXTURE0 + m_unit);
 									glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
 									for (unsigned int i = 0; i < 6; ++i)
 									{
@@ -107,12 +116,26 @@ namespace YG
 				void Bind()
 				{
 					glActiveTexture(GL_TEXTURE0 + m_unit);
-					glBindTexture(GL_TEXTURE_2D, m_texture);
+					if (m_type == CUBEMAP)
+					{
+						glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
+					}
+					else
+					{
+						glBindTexture(GL_TEXTURE_2D, m_texture);
+					}
 				}
 
 				void Unbind()
 				{
-					glBindTexture(GL_TEXTURE_2D, 0);
+					if (m_type == CUBEMAP)
+					{
+						glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+					}
+					else
+					{
+						glBindTexture(GL_TEXTURE_2D, 0);
+					}
 				}
 
 				std::vector<std::string> getPaths() const { return m_paths; }

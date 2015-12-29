@@ -69,6 +69,7 @@ namespace YG
 
 				~Material()
 				{
+					/*
 					for (unsigned int i = 0; i < MAXIMUM_TEXTURE; ++i)
 					{
 						if (m_textures[i])
@@ -76,6 +77,7 @@ namespace YG
 							delete m_textures[i];
 						}
 					}
+					*/
 				}
 
 				void Load()

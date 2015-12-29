@@ -4,14 +4,37 @@ using namespace std;
 using namespace YG;
 using namespace Core;
 
+Renderer *renderer;
+Camera *camera;
+Scene *scene;
+
+vector<string> shaders = { "Assets/shaders/ppGrayscale.fs", "Assets/shaders/ppInvert.fs", "Assets/shaders/ppSobel.fs", "Assets/shaders/ppEdge.fs" };
+unsigned int shaderIndex = 0;
+
+struct KeyEvent : public OnKeyPress
+{
+	void operator()(sf::Keyboard::Key key)
+	{
+		if (key == sf::Keyboard::P)
+		{
+			renderer->enablePostProcess(!renderer->isPostProcessEnabled());
+		}
+
+		if (key == sf::Keyboard::G)
+		{
+			renderer->setPostProcessShader(shaders[shaderIndex]);
+			shaderIndex = (shaderIndex == shaders.size() - 1) ? 0 : shaderIndex + 1;
+		}
+	}
+};
+
 int main(int argc, char **argv)
 {
 	unsigned int width = 1024, height = 768;
-	Renderer *renderer = new Renderer(width, height, "OpenGL");
-	Scene *scene = new Scene();
-	Camera *camera = new Core::Camera(45.0f, (float)(width / height), 0.1f, 10000.0f);
-	camera->eye = Math::Vector3(0.0f, -1.0f, -20.0f);
-
+	renderer = new Renderer(width, height, "OpenGL Stochastique LOL");
+	scene = new Scene();
+	camera = new Core::Camera(45.0f, (float)(width / height), 0.1f, 10000.0f);
+	camera->eye = Math::Vector3(0.0f, 1.0f, -40.0f);
 	renderer->fog_enabled = true;
 
 	renderer->addLight(new Core::Light(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3(0.5f, -0.5f, -1.0f), Math::Color(1.0f, 1.0f, 1.0f), 1.0f))
@@ -28,30 +51,37 @@ int main(int argc, char **argv)
 	material2->ambientIntensity = 0.1f;
 	material2->loadTexture("Assets/textures/lava2.jpg");
 
-	Core::Material *material3 = new Core::PhongMaterial(Math::Color(1.0f, 1.0f, 1.0f), Math::Color(1.0f, 0.3f, 0.3f), Math::Color(1.0f, 1.0f, 1.0f), 100.0f);
+	Core::Material *material3 = new Core::PhongMaterial(Math::Color(1.0f, 1.0f, 1.0f), Math::Color(1.0f, 0.0f, 0.0f), Math::Color(1.0f, 0.5f, 0.3f), 40.0f);
 	material3->ambientIntensity = 0.5f;
 	material3->loadTexture("Assets/textures/metal.jpg");
-
-	Core::Material *material4 = new Core::PhongMaterial(Math::Color(1.0f, 1.0f, 1.0f), Math::Color(1.0f, 0.3f, 0.3f), Math::Color(1.0f, 1.0f, 1.0f), 100.0f);
-	material4->ambientIntensity = 0.5f;
-	material4->loadTexture("Assets/textures/metal.jpg");
 
 	Core::Mesh *sphere = new Core::Mesh(new Core::SphereGeometry(1.0f, 128, 128), material);
 	sphere->transform.Translate(Math::Vector3(0.0f, 3.0f, 0.0f));
 	sphere->setName("Sphere");
 	scene->Add(sphere);
 
-	Core::Mesh *sphere2 = new Core::Mesh(new Core::SphereGeometry(1.5f, 128, 128), material2);
+	Core::Mesh *sphere2 = new Core::Mesh(new Core::SphereGeometry(1.5f, 128, 128), material);
 	sphere2->setName("Sphere2");
 	sphere2->transform.Translate(Math::Vector3(4.0f, 3.0f, -1.0f));
 	scene->Add(sphere2);
 
-	Core::Mesh *ground = new Core::Mesh(new Core::PlaneGeometry(8.0f), material3);
-	ground->transform.rotation.x = Math::Rad(45.0f);
+	Core::Mesh *ground = new Core::Mesh(new Core::PlaneGeometry(30.0f), material3);
+	ground->transform.rotation.x = Math::Rad(90.0f);
+	ground->transform.position.z = 12.0f;
+	ground->transform.position.y = 25.0f;
 	scene->Add(ground);
 
 	renderer->enablePostProcess(true);
-	renderer->setPostProcessShader("Assets/shaders/postProcessTest.vs", "Assets/shaders/postProcessTest.fs");
+	renderer->addKeypressEvent(new KeyEvent());
+
+	renderer->setSkybox(
+		"Assets/skyboxes/multi3/red/bkg3_right1.png",
+		"Assets/skyboxes/multi3/red/bkg3_left2.png",
+		"Assets/skyboxes/multi3/red/bkg3_top3.png",
+		"Assets/skyboxes/multi3/red/bkg3_bottom4.png",
+		"Assets/skyboxes/multi3/red/bkg3_back6.png",
+		"Assets/skyboxes/multi3/red/bkg3_front5.png"
+	);
 
 	while (renderer->render(scene, camera))
 	{

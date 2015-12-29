@@ -11,6 +11,6 @@ Scene::~Scene()
 {
 	for (Actor* actor : m_children)
 	{
-		delete actor;
+		//delete actor;
 	}
 }
