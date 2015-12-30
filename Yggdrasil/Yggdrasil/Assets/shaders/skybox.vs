@@ -16,7 +16,7 @@ uniform float time;
 void main(void)
 {
 	v_position = a_position;
-	vec4 pos = vec4(a_position, 1.0);
+	vec4 pos = proj * view * vec4(a_position, 1.0);
 	
-	gl_Position = proj * view * pos;
+	gl_Position = pos.xyww;
 }

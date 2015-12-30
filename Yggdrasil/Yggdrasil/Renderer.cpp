@@ -410,6 +410,11 @@ bool Renderer::render(Scene *scene, Camera *camera)
 			GLuint shadowMapLocation = glGetUniformLocation(shaderID, "u_shadowMap");
 			glUniform1i(shadowMapLocation, 9);
 
+			glActiveTexture(GL_TEXTURE0 + 7);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
+			GLuint skyboxLocation = glGetUniformLocation(shaderID, "u_skybox");
+			glUniform1i(skyboxLocation, 7);
+
 			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
 			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(camera->view));
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
