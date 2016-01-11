@@ -46,6 +46,7 @@ namespace YG
 		class Material : public Asset
 		{
 			public:
+				Math::Vector2 repeat;
 				Math::Color ambient;
 				float ambientIntensity;
 
@@ -55,6 +56,7 @@ namespace YG
 					m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader("Assets/shaders/default.vs", "Assets/shaders/default.fs")));
 					this->ambient = ambient;
 					this->ambientIntensity = 0.6f;
+					repeat.set(1.0f, 1.0f);
 					Load();
 				}
 
@@ -64,6 +66,7 @@ namespace YG
 					m_resources.insert(std::pair<std::string, Resource*>("shader", new Shader(vs, fs)));
 					ambient.set(1.0f, 1.0f, 1.0f);
 					this->ambientIntensity = 0.6f;
+					repeat.set(1.0f, 1.0f);
 					Load();
 				}
 
@@ -114,6 +117,8 @@ namespace YG
 						GLuint texRepeatLoc = glGetUniformLocation(shaderID, texRepeat.str());
 						glUniform2f(texRepeatLoc, m_textures[i]->repeat.x, m_textures[i]->repeat.y);
 					}
+					GLuint texRepeatLoc = glGetUniformLocation(shaderID, "u_materialRepeat");
+					glUniform2f(texRepeatLoc, repeat.x, repeat.y);
 
 					BindProperties(shaderID);
 				}
@@ -140,6 +145,12 @@ namespace YG
 				Resource* operator[](const std::string& name)
 				{
 					return m_resources[name];
+				}
+
+				void LoadShader(std::string vs, std::string fs)
+				{
+					Shader *shdr = new Shader(vs, fs);
+					m_resources["shader"] = shdr;
 				}
 
 			protected:

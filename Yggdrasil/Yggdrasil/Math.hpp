@@ -19,6 +19,11 @@ namespace YG
 		{
 			return angle * 180.0f / PI;
 		}
+
+		static float Lerpf(float a, float b, float t)
+		{
+			return (1.0f - t) * a + (t * b);
+		}
 	};
 };
 

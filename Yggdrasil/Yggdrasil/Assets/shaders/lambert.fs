@@ -47,12 +47,12 @@ void main(void)
 	vec3 lighting = u_material.ambient * u_material.ka;
 	for(int i = 0; i < u_lightCount; ++i)
 	{
-		vec3 L = normalize(u_lights[i].position);
+		vec3 L = normalize(-u_lights[i].position);
 		float NDotL = dot(N, L);
 		
 		vec3 diffuse = u_material.diffuse * max(NDotL, 0.0) * u_material.kd;
 		
-		lighting += (u_lights[i].intensity * u_lights[i].reflectance) + diffuse;
+		lighting += diffuse * (u_lights[i].intensity * u_lights[i].reflectance);
 	}
 	
     o_color = tex * vec4(lighting, 1.0);

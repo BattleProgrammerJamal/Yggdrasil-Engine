@@ -26,10 +26,11 @@ void main(void)
 		vec2(offset,  -offset)  
 	);
 
+	float d = cos(v_uv.x * v_uv.y) * sin(dt * dt);
     float kernel[9] = float[](
-		-1, -1, -1,
-		-1 * cos(dt),  9, -1,
-		-1, -1, -1 * sin(dt)
+		2, d, 2,
+		-1, 2.0, -1,
+		2, d, 2
     );
 	
 	vec3 sampleTex[9];
@@ -43,9 +44,5 @@ void main(void)
         col += sampleTex[i] * kernel[i];
 	}
 	
-	float d = length(0.2 * mod(vec4(col, 1.0), cos(dt * dot(v_position, v_uv))));
-	col.r = col.r * sqrt(1.0/d) * sin(d);
-	col.g = col.g * sin(d);
-	col.b = col.b * cos(d);
 	o_color = vec4(col, 1.0);
 }

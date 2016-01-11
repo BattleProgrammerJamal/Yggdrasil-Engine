@@ -30,5 +30,5 @@ out vec4 o_color;
 
 void main(void)
 {
-	o_color = vec4(vec3(gl_FragCoord.z), 1.0);
+	o_color = vec4(vec3(gl_FragCoord.z), 0.0);
 }

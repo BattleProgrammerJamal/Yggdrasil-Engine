@@ -94,6 +94,34 @@ namespace YG
 					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 				}
 
+				void LoadFlat(std::vector<float> vertice, std::vector<GLuint> indices)
+				{
+					m_indices = indices;
+
+					glGenVertexArrays(1, &m_vao);
+					glBindVertexArray(m_vao);
+					glGenBuffers(1, &m_vbo);
+					glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+					glBufferData(GL_ARRAY_BUFFER, sizeof(float)* vertice.size(), (const void*)&vertice[0], GL_STATIC_DRAW);
+
+					glEnableVertexAttribArray(0);
+					glEnableVertexAttribArray(1);
+					glEnableVertexAttribArray(2);
+					glEnableVertexAttribArray(3);
+
+					glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Vertex::stride, BUFFER_OFFSET(0));
+					glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, Vertex::stride, BUFFER_OFFSET(3));
+					glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, Vertex::stride, BUFFER_OFFSET(6));
+					glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, Vertex::stride, BUFFER_OFFSET(9));
+
+					glBindVertexArray(0);
+
+					glGenBuffers(1, &m_ibo);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+					glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* m_indices.size(), (const void*)&m_indices[0], GL_STATIC_DRAW);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				}
+
 				GLuint getVAO() const { return m_vao; }
 				GLuint getVBO() const { return m_vbo; }
 				GLuint getIBO() const { return m_ibo; }

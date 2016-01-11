@@ -11,6 +11,8 @@
 #include "Color.hpp"
 #include "Mesh.hpp"
 #include "Light.hpp"
+#include "DirectionnalLight.hpp"
+#include "PointLight.hpp"
 #include "RenderTarget.hpp"
 
 #include "glew.h"
@@ -34,12 +36,21 @@
 
 #define DEFAULT_SKYBOX_VS "Assets/shaders/skybox.vs"
 #define DEFAULT_SKYBOX_FS "Assets/shaders/skybox.fs"
-#define DEFAULT_SKYBOX_TOP "Assets/textures/skybox/top.jpg"
-#define DEFAULT_SKYBOX_BOTTOM "Assets/textures/skybox/bottom.jpg"
-#define DEFAULT_SKYBOX_LEFT "Assets/textures/skybox/left.jpg"
-#define DEFAULT_SKYBOX_RIGHT "Assets/textures/skybox/right.jpg"
-#define DEFAULT_SKYBOX_BACK "Assets/textures/skybox/back.jpg"
-#define DEFAULT_SKYBOX_FRONT "Assets/textures/skybox/front.jpg"
+#define DEFAULT_SKYBOX2_TOP "Assets/textures/skybox/top.jpg"
+#define DEFAULT_SKYBOX2_BOTTOM "Assets/textures/skybox/bottom.jpg"
+#define DEFAULT_SKYBOX2_LEFT "Assets/textures/skybox/left.jpg"
+#define DEFAULT_SKYBOX2_RIGHT "Assets/textures/skybox/right.jpg"
+#define DEFAULT_SKYBOX2_BACK "Assets/textures/skybox/back.jpg"
+#define DEFAULT_SKYBOX2_FRONT "Assets/textures/skybox/front.jpg"
+
+#define DEFAULT_SKYBOX_TOP "Assets/skyboxes/multi2/elyvisions/sh_up.png"
+#define DEFAULT_SKYBOX_BOTTOM "Assets/skyboxes/multi2/elyvisions/sh_dn.png"
+#define DEFAULT_SKYBOX_LEFT "Assets/skyboxes/multi2/elyvisions/sh_lf.png"
+#define DEFAULT_SKYBOX_RIGHT "Assets/skyboxes/multi2/elyvisions/sh_rt.png"
+#define DEFAULT_SKYBOX_BACK "Assets/skyboxes/multi2/elyvisions/sh_bk.png"
+#define DEFAULT_SKYBOX_FRONT "Assets/skyboxes/multi2/elyvisions/sh_ft.png"
+
+#define DEFAULT_SKYBOX_CLOUD_TEXTURE "Assets/textures/cloud.jpg"
 
 #define UBO_SIZE() sizeof(float) * (16 + 16 + 16)
 
@@ -106,9 +117,9 @@ namespace YG
 					return *this;
 				}
 
-				Light& getLight(unsigned int index)
+				Light* getLight(unsigned int index)
 				{
-					return *m_lights[index % MAXIMUM_LIGHT];
+					return m_lights[index % MAXIMUM_LIGHT];
 				}
 
 				void setPostProcessShader(std::string fs)
@@ -148,6 +159,7 @@ namespace YG
 				GLuint m_skyboxVAO;
 				GLuint m_skyboxIBO;
 				Shader *m_skyboxShader;
+				Texture *m_cloudTexture;
 				Texture *m_skyboxCubemap;
 				GLuint m_postProcessVAO;
 				GLuint m_postProcessIBO;

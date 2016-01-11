@@ -72,9 +72,13 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="BoxGeometry.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Color.cpp" />
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="DirectionnalLight.cpp" />
+    <ClCompile Include="Empathic.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FresnelMaterial.cpp" />
     <ClCompile Include="Geometry.cpp" />
@@ -89,6 +93,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PhongMaterial.cpp" />
     <ClCompile Include="PlaneGeometry.cpp" />
+    <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
@@ -96,7 +101,9 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SphereGeometry.cpp" />
+    <ClCompile Include="TerrainGeometry.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="tiny_obj_loader.cc" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="Vector3.cpp" />
@@ -105,9 +112,13 @@
   <ItemGroup>
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Asset.hpp" />
+    <ClInclude Include="BoxGeometry.hpp" />
     <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="Collider.hpp" />
     <ClInclude Include="Color.hpp" />
+    <ClInclude Include="Component.hpp" />
     <ClInclude Include="DirectionnalLight.hpp" />
+    <ClInclude Include="Empathic.hpp" />
     <ClInclude Include="File.hpp" />
     <ClInclude Include="FresnelMaterial.hpp" />
     <ClInclude Include="Geometry.hpp" />
@@ -122,6 +133,7 @@
     <ClInclude Include="Model.hpp" />
     <ClInclude Include="PhongMaterial.hpp" />
     <ClInclude Include="PlaneGeometry.hpp" />
+    <ClInclude Include="PointLight.hpp" />
     <ClInclude Include="Quaternion.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="RenderTarget.hpp" />
@@ -129,6 +141,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="SphereGeometry.hpp" />
+    <ClInclude Include="TerrainGeometry.hpp" />
     <ClInclude Include="Texture.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="Vector2.hpp" />

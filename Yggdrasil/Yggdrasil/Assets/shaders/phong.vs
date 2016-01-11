@@ -26,6 +26,7 @@ void main(void)
 	v_tangent = a_tangent;
 	v_uv = a_uv;
 	vec4 pos = vec4(a_position, 1.0);
+	float dt = time / 1000.0;
 	
 	gl_Position = proj * view * world * pos;
 }

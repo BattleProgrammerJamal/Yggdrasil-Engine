@@ -20,20 +20,29 @@ namespace YG
 {
 	namespace Core
 	{
+		enum LIGHT_TYPE
+		{
+			DIRECTIONNAL = 0,
+			POINT,
+			SPOT
+		};
+
 		class Light
 		{
 			public:
 				Math::Vector3 position;
-				Math::Vector3 direction;
 				Math::Color reflectance;
 				float intensity;
+				bool showGizmo;
+				LIGHT_TYPE type;
 
-				Light(Math::Vector3 position = Math::Vector3(), Math::Vector3 direction = Math::Vector3(), Math::Color reflectance = Math::Color(1.0f, 1.0f, 1.0f), float intensity = 1.0f)
+				Light(Math::Vector3 position = Math::Vector3(), Math::Color reflectance = Math::Color(1.0f, 1.0f, 1.0f), float intensity = 1.0f)
 				{
 					this->position = position;
-					this->direction = direction;
 					this->reflectance = reflectance;
 					this->intensity = intensity;
+					this->showGizmo = false;
+					this->type = DIRECTIONNAL;
 				}
 
 				bool isCastShadow() const { return m_castShadow; }

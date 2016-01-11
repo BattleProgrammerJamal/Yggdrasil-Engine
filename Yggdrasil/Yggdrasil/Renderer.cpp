@@ -48,7 +48,7 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 
 	fog_enabled = false;
 	fog_min_distance = 10.0f;
-	fog_max_distance = 100.0f;
+	fog_max_distance = 10000.0f;
 	fog_color.set(0.4f, 0.4f, 0.4f);
 
 	m_shadowMap = new RenderTarget(SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
@@ -158,6 +158,9 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 	m_skyboxCubemap = new Texture(CUBEMAP, paths, 7);
 	m_skyboxCubemap->Load();
 	m_skyboxShader = new Shader(DEFAULT_SKYBOX_VS, DEFAULT_SKYBOX_FS);
+
+	std::vector<std::string> paths2 = { DEFAULT_SKYBOX_CLOUD_TEXTURE };
+	m_cloudTexture = new Texture(TEXTURE, paths2, 13);
 }
 
 Renderer::~Renderer()
@@ -195,6 +198,10 @@ void Renderer::createDisplay(const std::string& title, bool fullscreen)
 	{
 		m_window = new sf::Window(sf::VideoMode(), title.c_str(), sf::Style::Fullscreen, settings);
 	}
+
+	int iconWidth, iconHeight, iconComp;
+	unsigned char* data = stbi_load("Assets/images/favicon.png", &iconWidth, &iconHeight, &iconComp, 0);
+	m_window->setIcon(iconWidth, iconHeight, data);
 }
 
 GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *shadowMapShader)
@@ -205,7 +212,7 @@ GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *s
 
 	glViewport(0, 0, m_shadowMap->getWidth(), m_shadowMap->getHeight());
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	for (Actor* actor : scene->getChildren())
 	{
@@ -219,7 +226,8 @@ GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *s
 
 			glm::mat4 shadowMapWorld = mesh->transform.world;
 			glm::mat4 shadowMapProj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-			glm::mat4 shadowMapView = glm::lookAt(glm::vec3(-L.direction.x, -L.direction.y, -L.direction.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			Math::Vector3 LDir = (L.type == DIRECTIONNAL) ? static_cast<DirectionnalLight&>(L).direction : L.position;
+			glm::mat4 shadowMapView = glm::lookAt(glm::vec3(-LDir.x, -LDir.y, -LDir.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			m_shadowMapWVP = shadowMapProj * shadowMapView * shadowMapWorld;
 
 			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
@@ -234,17 +242,40 @@ GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *s
 				if (m_lights[i]) { counterLightActive = (i == 0) ? counterLightActive : (counterLightActive + 1); }
 				else { continue; }
 
-				std::stringstream stream1, stream2, stream3;
+				std::stringstream stream1, stream2, stream3, stream4, stream5, stream6, stream7, stream8;
 				stream1 << "u_lights[" << counterLightActive << "].position";
-				stream2 << "u_lights[" << counterLightActive << "].reflectance";
-				stream3 << "u_lights[" << counterLightActive << "].intensity";
+				stream2 << "u_lights[" << counterLightActive << "].direction";
+				stream3 << "u_lights[" << counterLightActive << "].reflectance";
+				stream4 << "u_lights[" << counterLightActive << "].intensity";
+				stream5 << "u_lights[" << counterLightActive << "].type";
+				stream6 << "u_lights[" << counterLightActive << "].constantAttenuation";
+				stream7 << "u_lights[" << counterLightActive << "].linearAttenuation";
+				stream8 << "u_lights[" << counterLightActive << "].exponentialAttenuation";
 				GLuint lightPosLocation = glGetUniformLocation(shaderID, stream1.str().c_str());
-				GLuint lightReflLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
-				GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
+				GLuint lightDirLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
+				GLuint lightReflLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
+				GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream4.str().c_str());
+				GLuint lightTypeLocation = glGetUniformLocation(shaderID, stream5.str().c_str());
+				GLuint lightConstantAttenuationLocation = glGetUniformLocation(shaderID, stream6.str().c_str());
+				GLuint lightLinearAttenuationLocation = glGetUniformLocation(shaderID, stream7.str().c_str());
+				GLuint lightExponentialAttenuationLocation = glGetUniformLocation(shaderID, stream8.str().c_str());
 
-				glUniform3f(lightPosLocation, m_lights[i]->direction.x, m_lights[i]->direction.y, m_lights[i]->direction.z);
+				glUniform3f(lightPosLocation, m_lights[i]->position.x, m_lights[i]->position.y, m_lights[i]->position.z);
+				if (m_lights[i]->type == DIRECTIONNAL)
+				{
+					DirectionnalLight *L = static_cast<DirectionnalLight*>(m_lights[i]);
+					glUniform3f(lightDirLocation, L->direction.x, L->direction.y, L->direction.z);
+				}
 				glUniform3f(lightReflLocation, m_lights[i]->reflectance.r, m_lights[i]->reflectance.g, m_lights[i]->reflectance.b);
 				glUniform1f(lightIntenLocation, m_lights[i]->intensity);
+				glUniform1i(lightTypeLocation, m_lights[i]->type);
+				if (m_lights[i]->type == POINT)
+				{
+					PointLight *L = static_cast<PointLight*>(m_lights[i]);
+					glUniform1f(lightConstantAttenuationLocation, L->attenuation.constant);
+					glUniform1f(lightLinearAttenuationLocation, L->attenuation.linear);
+					glUniform1f(lightExponentialAttenuationLocation, L->attenuation.exponential);
+				}
 			}
 			GLuint lightCountLocation = glGetUniformLocation(shaderID, "u_lightCount");
 			glUniform1i(lightCountLocation, counterLightActive + 1);
@@ -329,6 +360,10 @@ bool Renderer::render(Scene *scene, Camera *camera)
 
 		shadowMap = bakeShadowMap(scene, camera, *m_lights[i]);
 	}
+	if (m_lights[0] == 0)
+	{
+		shadowMap = bakeShadowMap(scene, camera, DirectionnalLight());
+	}
 	glDisable(GL_BLEND);
 
 	if (m_postProcessEnabled)
@@ -351,6 +386,34 @@ bool Renderer::render(Scene *scene, Camera *camera)
 	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	glm::mat4 VP = camera->proj * camera->view;
+	for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
+	{
+		Light *L = m_lights[i];
+		if (L == 0) { continue; }
+		if (L->showGizmo == false){ continue; }
+
+		glm::mat4 WVP = VP * glm::translate(glm::vec3(L->position.x, L->position.y, L->position.z));
+
+		glPushMatrix();
+		glLoadMatrixf(glm::value_ptr(WVP));
+		glColor3f(1.0f, 1.0f, 0.0f);
+		GLenum type = (L->type == DIRECTIONNAL) ? GL_LINES : GL_POINTS;
+		glBegin(type);
+			if (L->type == DIRECTIONNAL)
+			{
+				Math::Vector3 Dir = static_cast<DirectionnalLight*>(L)->direction;
+				glVertex3f(0.0f, 0.0f, 0.0f);
+				glVertex3f(Dir.x, Dir.y, Dir.z);
+			}
+			else
+			{
+				glVertex3f(0.0f, 0.0f, 0.0f);
+			}
+		glEnd();
+		glPopMatrix();
+	}
+
 	if (m_skyboxEnabled)
 	{
 		glDepthMask(GL_FALSE);
@@ -359,6 +422,10 @@ bool Renderer::render(Scene *scene, Camera *camera)
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
 		GLuint skyboxLocation = glGetUniformLocation(m_skyboxShader->getId(), "u_skybox");
 		glUniform1i(skyboxLocation, 7);
+		glActiveTexture(GL_TEXTURE0 + 13);
+		glBindTexture(GL_TEXTURE_2D, m_cloudTexture->getId());
+		GLuint cloudLocation = glGetUniformLocation(m_skyboxShader->getId(), "u_cloud");
+		glUniform1i(cloudLocation, 13);
 
 		glBindVertexArray(m_skyboxVAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_skyboxIBO);
@@ -378,104 +445,153 @@ bool Renderer::render(Scene *scene, Camera *camera)
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 		m_skyboxShader->Unbind();
 		glDepthMask(GL_TRUE);
 	}
 
-	for (Actor* actor : scene->getChildren())
+	for (Actor* a : scene->getChildren())
 	{
-		actor->transform.updateWorldMatrix();
-		if (typeid(Mesh) == typeid(*actor))
+		Actor *actor = 0;
+		int i = -1;
+
+		do
 		{
-			Mesh *mesh = static_cast<Mesh*>(actor);
-			Geometry *geo = mesh->getGeometry();
-			Material *mat = mesh->getMaterial();
-			if (geo == 0 || mat == 0) { continue; }
-			GLuint shaderID = mat->getShader();
+			actor = (i == -1) ? a : a->getChildren().at(i);
+			++i;
 
-			mat->Bind();
-
-			glm::mat4 biasMatrix(
-				0.5, 0.0, 0.0, 0.0,
-				0.0, 0.5, 0.0, 0.0,
-				0.0, 0.0, 0.5, 0.0,
-				0.5, 0.5, 0.5, 1.0);
-			glm::mat4 depthBiasWVP = biasMatrix * m_shadowMapWVP;
-
-			glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_depthBiasWVP"), 1, GL_FALSE, glm::value_ptr(depthBiasWVP));
-
-			glActiveTexture(GL_TEXTURE0 + 9);
-			glBindTexture(GL_TEXTURE_2D, shadowMap);
-			GLuint shadowMapLocation = glGetUniformLocation(shaderID, "u_shadowMap");
-			glUniform1i(shadowMapLocation, 9);
-
-			glActiveTexture(GL_TEXTURE0 + 7);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
-			GLuint skyboxLocation = glGetUniformLocation(shaderID, "u_skybox");
-			glUniform1i(skyboxLocation, 7);
-
-			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(camera->view));
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(mesh->transform.world));
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-			unsigned int counterLightActive = 0;
-			for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
+			actor->transform.updateWorldMatrix();
+			if (typeid(Mesh) == typeid(*actor))
 			{
-				if (m_lights[i]) { counterLightActive = (i == 0) ? counterLightActive : (counterLightActive + 1); }
-				else { continue; }
+				Mesh *mesh = static_cast<Mesh*>(actor);
+				Geometry *geo = mesh->getGeometry();
+				Material *mat = mesh->getMaterial();
+				if (geo == 0 || mat == 0) { continue; }
+				GLuint shaderID = mat->getShader();
 
-				std::stringstream stream1, stream2, stream3;
-				stream1 << "u_lights[" << counterLightActive << "].position";
-				stream2 << "u_lights[" << counterLightActive << "].reflectance";
-				stream3 << "u_lights[" << counterLightActive << "].intensity";
-				GLuint lightPosLocation = glGetUniformLocation(shaderID, stream1.str().c_str());
-				GLuint lightReflLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
-				GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
+				mat->Bind();
 
-				glUniform3f(lightPosLocation, m_lights[i]->direction.x, m_lights[i]->direction.y, m_lights[i]->direction.z);
-				glUniform3f(lightReflLocation, m_lights[i]->reflectance.r, m_lights[i]->reflectance.g, m_lights[i]->reflectance.b);
-				glUniform1f(lightIntenLocation, m_lights[i]->intensity);
+				glm::mat4 biasMatrix(
+					0.5, 0.0, 0.0, 0.0,
+					0.0, 0.5, 0.0, 0.0,
+					0.0, 0.0, 0.5, 0.0,
+					0.5, 0.5, 0.5, 1.0);
+				glm::mat4 depthBiasWVP = biasMatrix * m_shadowMapWVP;
+
+				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_depthBiasWVP"), 1, GL_FALSE, glm::value_ptr(depthBiasWVP));
+
+				glActiveTexture(GL_TEXTURE0 + 9);
+				glBindTexture(GL_TEXTURE_2D, shadowMap);
+				GLuint shadowMapLocation = glGetUniformLocation(shaderID, "u_shadowMap");
+				glUniform1i(shadowMapLocation, 9);
+
+				glActiveTexture(GL_TEXTURE0 + 7);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
+				GLuint skyboxLocation = glGetUniformLocation(shaderID, "u_skybox");
+				glUniform1i(skyboxLocation, 7);
+
+				glm::mat4 world = mesh->transform.world;
+				if (i > -1) { world = actor->transform.world * world; }
+
+				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float)* 16, glm::value_ptr(camera->view));
+				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(camera->proj));
+				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)* 16 + sizeof(float)* 16, sizeof(float)* 16, glm::value_ptr(world));
+				glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+				unsigned int counterLightActive = 0;
+				for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
+				{
+					if (m_lights[i]) { counterLightActive = (i == 0) ? counterLightActive : (counterLightActive + 1); }
+					else { continue; }
+					
+					std::stringstream stream1, stream2, stream3, stream4, stream5, stream6, stream7, stream8;
+					stream1 << "u_lights[" << counterLightActive << "].position";
+					stream2 << "u_lights[" << counterLightActive << "].direction";
+					stream3 << "u_lights[" << counterLightActive << "].reflectance";
+					stream4 << "u_lights[" << counterLightActive << "].intensity";
+					stream5 << "u_lights[" << counterLightActive << "].type";
+					stream6 << "u_lights[" << counterLightActive << "].constantAttenuation";
+					stream7 << "u_lights[" << counterLightActive << "].linearAttenuation";
+					stream8 << "u_lights[" << counterLightActive << "].exponentialAttenuation";
+					GLuint lightPosLocation = glGetUniformLocation(shaderID, stream1.str().c_str());
+					GLuint lightDirLocation = glGetUniformLocation(shaderID, stream2.str().c_str());
+					GLuint lightReflLocation = glGetUniformLocation(shaderID, stream3.str().c_str());
+					GLuint lightIntenLocation = glGetUniformLocation(shaderID, stream4.str().c_str());
+					GLuint lightTypeLocation = glGetUniformLocation(shaderID, stream5.str().c_str());
+					GLuint lightConstantAttenuationLocation = glGetUniformLocation(shaderID, stream6.str().c_str());
+					GLuint lightLinearAttenuationLocation = glGetUniformLocation(shaderID, stream7.str().c_str());
+					GLuint lightExponentialAttenuationLocation = glGetUniformLocation(shaderID, stream8.str().c_str());
+
+					glUniform3f(lightPosLocation, m_lights[i]->position.x, m_lights[i]->position.y, m_lights[i]->position.z);
+					if (m_lights[i]->type == DIRECTIONNAL)
+					{
+						DirectionnalLight *L = static_cast<DirectionnalLight*>(m_lights[i]);
+						glUniform3f(lightDirLocation, L->direction.x, L->direction.y, L->direction.z);
+					}
+					glUniform3f(lightReflLocation, m_lights[i]->reflectance.r, m_lights[i]->reflectance.g, m_lights[i]->reflectance.b);
+					glUniform1f(lightIntenLocation, m_lights[i]->intensity);
+					GLuint lType = (m_lights[i]->type == POINT) ? 1 : 0;
+					glUniform1ui(lightTypeLocation, lType);
+					if (m_lights[i]->type == POINT)
+					{
+						PointLight *L = static_cast<PointLight*>(m_lights[i]);
+						glUniform1f(lightConstantAttenuationLocation, L->attenuation.constant);
+						glUniform1f(lightLinearAttenuationLocation, L->attenuation.linear);
+						glUniform1f(lightExponentialAttenuationLocation, L->attenuation.exponential);
+					}
+				}
+				GLuint lightCountLocation = glGetUniformLocation(shaderID, "u_lightCount");
+				glUniform1i(lightCountLocation, counterLightActive + 1);
+
+				GLuint cameraPositionLocation = glGetUniformLocation(shaderID, "u_cameraPosition");
+				glUniform3f(cameraPositionLocation, camera->eye.x, camera->eye.y, camera->eye.z);
+
+				GLuint fogEnabledLocation = glGetUniformLocation(shaderID, "u_fogEnabled");
+				if (fog_enabled)
+				{
+					glUniform1i(fogEnabledLocation, 1);
+
+					GLuint fogMinDistanceLocation = glGetUniformLocation(shaderID, "u_fogMinDistance");
+					GLuint fogMaxDistanceLocation = glGetUniformLocation(shaderID, "u_fogMaxDistance");
+					GLuint fogColorLocation = glGetUniformLocation(shaderID, "u_fogColor");
+
+					glUniform1f(fogMinDistanceLocation, fog_min_distance);
+					glUniform1f(fogMaxDistanceLocation, fog_max_distance);
+					glUniform3f(fogColorLocation, fog_color.r, fog_color.g, fog_color.b);
+				}
+				else
+				{
+					glUniform1i(fogEnabledLocation, 0);
+				}
+
+				glUniform1f(glGetUniformLocation(shaderID, "time"), (float)clock.getElapsedTime().asMilliseconds());
+				glUniform2i(glGetUniformLocation(shaderID, "u_iScreenSize"), (int)(1.0f / m_width), (int)(1.0f / m_height));
+
+				GLuint wireframeLocation = glGetUniformLocation(shaderID, "u_wireframe");
+				glUniform1ui(wireframeLocation, (GLuint)0);
+
+				glBindVertexArray(geo->getVAO());
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geo->getIBO());
+
+				glDrawElementsInstanced(mesh->renderStyle, geo->getIndices().size(), GL_UNSIGNED_INT, (const void*)0, mesh->renderCount);
+
+				if (mesh->wireframe)
+				{
+					GLuint wirestyleLocation = glGetUniformLocation(shaderID, "u_wirestyle");
+					glUniform1ui(wireframeLocation, (GLuint)1);
+					glUniform3f(wirestyleLocation, mesh->wirestyle.r, mesh->wirestyle.g, mesh->wirestyle.b);
+
+					glDrawElementsInstanced(GL_LINE_STRIP, geo->getIndices().size(), GL_UNSIGNED_INT, (const void*)0, mesh->renderCount);
+				}
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				glBindVertexArray(0);
+
+				mat->Unbind();
 			}
-			GLuint lightCountLocation = glGetUniformLocation(shaderID, "u_lightCount");
-			glUniform1i(lightCountLocation, counterLightActive + 1);
-
-			GLuint cameraPositionLocation = glGetUniformLocation(shaderID, "u_cameraPosition");
-			glUniform3f(cameraPositionLocation, camera->eye.x, camera->eye.y, camera->eye.z);
-
-			GLuint fogEnabledLocation = glGetUniformLocation(shaderID, "u_fogEnabled");
-			if (fog_enabled)
-			{
-				glUniform1i(fogEnabledLocation, 1);
-
-				GLuint fogMinDistanceLocation = glGetUniformLocation(shaderID, "u_fogMinDistance");
-				GLuint fogMaxDistanceLocation = glGetUniformLocation(shaderID, "u_fogMaxDistance");
-				GLuint fogColorLocation = glGetUniformLocation(shaderID, "u_fogColor");
-
-				glUniform1f(fogMinDistanceLocation, fog_min_distance);
-				glUniform1f(fogMaxDistanceLocation, fog_max_distance);
-				glUniform3f(fogColorLocation, fog_color.r, fog_color.g, fog_color.b);
-			}
-			else
-			{
-				glUniform1i(fogEnabledLocation, 0);
-			}
-
-			glUniform1f(glGetUniformLocation(shaderID, "time"), (float)clock.getElapsedTime().asMilliseconds());
-			glUniform2i(glGetUniformLocation(shaderID, "u_iScreenSize"), (int)(1.0f / m_width), (int)(1.0f / m_height));
-
-			glBindVertexArray(geo->getVAO());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geo->getIBO());
-
-			glDrawElements(mesh->renderStyle, geo->getIndices().size(), GL_UNSIGNED_INT, (const void*)0);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
-
-			mat->Unbind();
-		}
+		} while (i < (int)actor->getChildren().size());
 	}
 	if (m_postProcessEnabled)
 	{
