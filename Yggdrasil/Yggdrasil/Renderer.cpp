@@ -155,12 +155,12 @@ Renderer::Renderer(unsigned int width, unsigned int height, const std::string& t
 		DEFAULT_SKYBOX_BACK,
 		DEFAULT_SKYBOX_FRONT
 	};
-	m_skyboxCubemap = new Texture(CUBEMAP, paths, 7);
+	m_skyboxCubemap = new Texture(CUBEMAP, paths, 0);
 	m_skyboxCubemap->Load();
 	m_skyboxShader = new Shader(DEFAULT_SKYBOX_VS, DEFAULT_SKYBOX_FS);
 
 	std::vector<std::string> paths2 = { DEFAULT_SKYBOX_CLOUD_TEXTURE };
-	m_cloudTexture = new Texture(TEXTURE, paths2, 13);
+	m_cloudTexture = new Texture(TEXTURE, paths2, 1);
 }
 
 Renderer::~Renderer()
@@ -212,7 +212,7 @@ GLuint Renderer::bakeShadowMap(Scene *scene, Camera *camera, Light& L, Shader *s
 
 	glViewport(0, 0, m_shadowMap->getWidth(), m_shadowMap->getHeight());
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	for (Actor* actor : scene->getChildren())
 	{
@@ -353,7 +353,7 @@ bool Renderer::render(Scene *scene, Camera *camera)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	GLuint shadowMap;
-	for (unsigned int i = 0; i < 16; ++i)
+	for (unsigned int i = 0; i < MAXIMUM_LIGHT; ++i)
 	{
 		if (m_lights[i] == 0){ continue; }
 		if (m_lights[i]->isCastShadow() == false) { continue; }
@@ -418,14 +418,14 @@ bool Renderer::render(Scene *scene, Camera *camera)
 	{
 		glDepthMask(GL_FALSE);
 		m_skyboxShader->Bind();
-		glActiveTexture(GL_TEXTURE0 + 7);
+		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
 		GLuint skyboxLocation = glGetUniformLocation(m_skyboxShader->getId(), "u_skybox");
-		glUniform1i(skyboxLocation, 7);
-		glActiveTexture(GL_TEXTURE0 + 13);
+		glUniform1i(skyboxLocation, 0);
+		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_2D, m_cloudTexture->getId());
 		GLuint cloudLocation = glGetUniformLocation(m_skyboxShader->getId(), "u_cloud");
-		glUniform1i(cloudLocation, 13);
+		glUniform1i(cloudLocation, 1);
 
 		glBindVertexArray(m_skyboxVAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_skyboxIBO);
@@ -481,15 +481,15 @@ bool Renderer::render(Scene *scene, Camera *camera)
 
 				glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_depthBiasWVP"), 1, GL_FALSE, glm::value_ptr(depthBiasWVP));
 
-				glActiveTexture(GL_TEXTURE0 + 9);
+				glActiveTexture(GL_TEXTURE0 + 2);
 				glBindTexture(GL_TEXTURE_2D, shadowMap);
 				GLuint shadowMapLocation = glGetUniformLocation(shaderID, "u_shadowMap");
-				glUniform1i(shadowMapLocation, 9);
+				glUniform1i(shadowMapLocation, 2);
 
-				glActiveTexture(GL_TEXTURE0 + 7);
+				glActiveTexture(GL_TEXTURE0 + 3);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxCubemap->getTextureId());
 				GLuint skyboxLocation = glGetUniformLocation(shaderID, "u_skybox");
-				glUniform1i(skyboxLocation, 7);
+				glUniform1i(skyboxLocation, 3);
 
 				glm::mat4 world = mesh->transform.world;
 				if (i > -1) { world = actor->transform.world * world; }
@@ -605,10 +605,10 @@ bool Renderer::render(Scene *scene, Camera *camera)
 		glBindVertexArray(m_postProcessVAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_postProcessIBO);
 
-		glActiveTexture(GL_TEXTURE0 + 14);
+		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_2D, m_postProcessPass->getTexture());
 		GLuint screenTextureLocation = glGetUniformLocation(m_postProcessShader->getId(), "u_sceneTexture");
-		glUniform1i(screenTextureLocation, 14);
+		glUniform1i(screenTextureLocation, 0);
 
 		glUniform1f(glGetUniformLocation(m_postProcessShader->getId(), "time"), (float)clock.getElapsedTime().asMilliseconds());
 

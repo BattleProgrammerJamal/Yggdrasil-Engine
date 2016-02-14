@@ -129,6 +129,9 @@
     <ClCompile Include="Empathic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MorphTargetGeometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.hpp">
@@ -240,6 +243,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Empathic.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MorphTargetGeometry.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

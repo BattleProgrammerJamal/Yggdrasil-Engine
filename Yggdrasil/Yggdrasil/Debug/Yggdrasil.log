@@ -1,15 +1,18 @@
-﻿Build started 11/01/2016 03:53:25.
+﻿Build started 05/02/2016 17:58:46.
      1>Project "C:\Users\Jamal\Documents\GitHub\Yggdrasil-Engine\Yggdrasil\Yggdrasil\Yggdrasil.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ILibs\glm\include /ILibs\TinyObjLoader\TINY /ILibs\stbimage\include /ILibs\SFML\include /ILibs\glew\include /ILibs\AntTweakBar\include /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ILibs\glm\include /ILibs\TinyObjLoader\TINY /ILibs\stbimage\include /ILibs\SFML\include /ILibs\glew\include /ILibs\AntTweakBar\include /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt MorphTargetGeometry.cpp Yggdrasil.cpp main.cpp
          main.cpp
      1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\terraingeometry.hpp(41): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
      1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\model.hpp(80): warning C4316: 'YG::Core::Mesh' : object allocated on the heap may not be aligned 16
      1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\empathic.hpp(144): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
      1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\empathic.hpp(165): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\main.cpp(134): warning C4316: 'YG::Core::Renderer' : object allocated on the heap may not be aligned 16
-     1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\main.cpp(136): warning C4316: 'YG::Core::Camera' : object allocated on the heap may not be aligned 16
-     1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\main.cpp(181): warning C4316: 'YG::Core::Mesh' : object allocated on the heap may not be aligned 16
+     1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\main.cpp(36): warning C4316: 'YG::Core::Renderer' : object allocated on the heap may not be aligned 16
+     1>c:\users\jamal\documents\github\yggdrasil-engine\yggdrasil\yggdrasil\main.cpp(38): warning C4316: 'YG::Core::Camera' : object allocated on the heap may not be aligned 16
+         Generating Code...
+         Skipping... (no relevant changes detected)
+         Yggdrasil.cpp
+         MorphTargetGeometry.cpp
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Jamal\Documents\GitHub\Yggdrasil-Engine\Yggdrasil\Debug\Yggdrasil.exe" /INCREMENTAL /NOLOGO /LIBPATH:Libs\SFML\lib /LIBPATH:Libs\glew\lib /LIBPATH:Libs\AntTweakBar\lib opengl32.lib glew32.lib "sfml-graphics.lib" "sfml-window.lib" "sfml-system.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Jamal\Documents\GitHub\Yggdrasil-Engine\Yggdrasil\Debug\Yggdrasil.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Jamal\Documents\GitHub\Yggdrasil-Engine\Yggdrasil\Debug\Yggdrasil.lib" /MACHINE:X86 Debug\Actor.obj
          Debug\Asset.obj
@@ -32,6 +35,7 @@
          Debug\Matrix4.obj
          Debug\Mesh.obj
          Debug\Model.obj
+         Debug\MorphTargetGeometry.obj
          Debug\PhongMaterial.obj
          Debug\PlaneGeometry.obj
          Debug\PointLight.obj
@@ -54,4 +58,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.44
+Time Elapsed 00:00:06.01

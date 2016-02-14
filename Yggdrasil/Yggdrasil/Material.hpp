@@ -39,6 +39,9 @@
 								"o_color = vec4(v_normal, 1.0);\n" \
 								"}"
 
+#define NORMAL_MAP_UNIT 15
+#define SPECULAR_MAP_UNIT 14
+
 namespace YG
 {
 	namespace Core
@@ -49,6 +52,8 @@ namespace YG
 				Math::Vector2 repeat;
 				Math::Color ambient;
 				float ambientIntensity;
+				Core::Texture* normalMap;
+				Core::Texture* specularMap;
 
 				Material(Math::Color ambient = Math::Color(1.0f, 1.0f, 1.0f))
 					: Asset("Material")
@@ -57,6 +62,8 @@ namespace YG
 					this->ambient = ambient;
 					this->ambientIntensity = 0.6f;
 					repeat.set(1.0f, 1.0f);
+					normalMap = 0;
+					specularMap = 0;
 					Load();
 				}
 
@@ -67,6 +74,8 @@ namespace YG
 					ambient.set(1.0f, 1.0f, 1.0f);
 					this->ambientIntensity = 0.6f;
 					repeat.set(1.0f, 1.0f);
+					normalMap = 0;
+					specularMap = 0;
 					Load();
 				}
 
@@ -100,6 +109,22 @@ namespace YG
 					return *m_textures[(m_textureLoadingId - 1) % MAXIMUM_TEXTURE];
 				}
 
+				Texture& loadNormalMap(const std::string& path)
+				{
+					std::vector<std::string> paths = std::vector<std::string>({ path });
+					normalMap = new Texture(TEXTURE, paths, NORMAL_MAP_UNIT);
+					normalMap->Load();
+					return *normalMap;
+				}
+
+				Texture& loadSpecularMap(const std::string& path)
+				{
+					std::vector<std::string> paths = std::vector<std::string>({ path });
+					specularMap = new Texture(TEXTURE, paths, SPECULAR_MAP_UNIT);
+					specularMap->Load();
+					return *specularMap;
+				}
+
 				void Bind()
 				{
 					static_cast<Shader*>(m_resources["shader"])->Bind();
@@ -120,6 +145,32 @@ namespace YG
 					GLuint texRepeatLoc = glGetUniformLocation(shaderID, "u_materialRepeat");
 					glUniform2f(texRepeatLoc, repeat.x, repeat.y);
 
+					GLuint normalMapLoc = glGetUniformLocation(shaderID, "u_normalMap");
+					GLuint useNormalMapLoc = glGetUniformLocation(shaderID, "u_useNormalMap");
+					if (normalMap)
+					{
+						glUniform1i(useNormalMapLoc, 1);
+						normalMap->Bind();
+						glUniform1i(normalMapLoc, normalMap->getUnit());
+					}
+					else
+					{
+						glUniform1i(useNormalMapLoc, 0);
+					}
+
+					GLuint specularMapLoc = glGetUniformLocation(shaderID, "u_specularMap");
+					GLuint useSpecularMapLoc = glGetUniformLocation(shaderID, "u_useSpecularMap");
+					if (specularMap)
+					{
+						glUniform1i(useSpecularMapLoc, 1);
+						specularMap->Bind();
+						glUniform1i(specularMapLoc, specularMap->getUnit());
+					}
+					else
+					{
+						glUniform1i(useSpecularMapLoc, 0);
+					}
+
 					BindProperties(shaderID);
 				}
 
@@ -133,6 +184,14 @@ namespace YG
 
 				void Unbind()
 				{
+					if (normalMap)
+					{
+						normalMap->Unbind();
+					}
+					if (specularMap)
+					{
+						specularMap->Unbind();
+					}
 					for (unsigned int i = 0; i < MAXIMUM_TEXTURE; ++i)
 					{
 						m_textures[i]->Unbind();

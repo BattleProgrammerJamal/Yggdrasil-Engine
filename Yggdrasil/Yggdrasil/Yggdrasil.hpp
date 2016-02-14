@@ -22,6 +22,7 @@
 #include "BoxGeometry.hpp"
 #include "TerrainGeometry.hpp"
 #include "Mesh.hpp"
+#include "MorphTargetGeometry.hpp"
 #include "Model.hpp"
 #include "RenderTarget.hpp"
 #include "Light.hpp"

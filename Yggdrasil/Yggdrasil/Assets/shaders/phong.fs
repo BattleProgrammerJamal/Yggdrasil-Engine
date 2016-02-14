@@ -32,6 +32,10 @@ in vec3 v_normal;
 in vec3 v_tangent;
 in vec2 v_uv;
 
+uniform sampler2D u_normalMap;
+uniform sampler2D u_specularMap;
+uniform int u_useNormalMap;
+uniform int u_useSpecularMap;
 uniform sampler2D u_shadowMap;
 uniform mat4 u_depthBiasWVP;
 uniform sampler2D u_texture0;
@@ -69,13 +73,25 @@ vec4 computeLighting()
 	vec4 tex = texture(u_texture0, vec2(v_uv.x, -v_uv.y) * u_materialRepeat);
 	float dt = time / 1000.0;	
 	vec3 N = normalize(v_normal);
+	if(u_useNormalMap == 1)
+	{
+		N = normalize(texture(u_normalMap, vec2(v_uv.x, -v_uv.y) * u_materialRepeat).xyz * 2.0 - 1.0);
+	}
 	vec3 V = normalize(mat3(view) * v_position);
-	float ratio = 1.0 / 1.33;
+	float ratio = 1.0 / 2.42;
 	
 	vec3 lighting = u_material.ambient * u_material.ka;
 	for(int i = 0; i < u_lightCount; ++i)
 	{
-		vec3 L = normalize(u_lights[i].position);
+		vec3 L = vec3(0.0);
+		if(u_lights[i].type == 1)
+		{
+			L = normalize(u_lights[i].position);
+		}
+		else
+		{
+			L = normalize(u_lights[i].direction);
+		}
 		float NDotL = dot(N, L);
 		
 		vec3 position = vec3(world * vec4(v_position, 1.0));
@@ -86,6 +102,12 @@ vec4 computeLighting()
 		vec3 diffuse = u_material.diffuse * max(NDotL, 0.0) * u_material.kd;
 		
 		vec3 specular = vec3(0.0);
+		vec3 specularMap = vec3(1.0, 1.0, 1.0);
+		if(u_useSpecularMap == 1)
+		{
+			specularMap = normalize(texture(u_specularMap, v_uv).xyz);
+		}
+		
 		if(BLINN_APPROXIMATION == 1)
 		{
 			vec3 H = (L + V) / length(L + V);
@@ -111,17 +133,18 @@ vec4 computeLighting()
 		
 		vec3 kl = u_lights[i].reflectance * u_lights[i].intensity;
 		
-		specular *= skyboxReflection;
-		specular *= skyboxRefraction;
+		//specular *= skyboxRefraction * skyboxReflection;
 		
 		lighting += diffuse + specular;
 		lighting *= kl;
 		
 		if(u_lights[i].type == 1)
 		{
-			float dst = length(vec3(world * vec4(v_position, 1.0)) - u_lights[i].position);
-			float att = 1.0 / (u_lights[i].constantAttenuation + u_lights[i].linearAttenuation * dst + u_lights[i].exponentialAttenuation * dst * dst);
-			lighting *= att;
+			vec3 worldPos = vec3(world * vec4(v_position, 1.0));
+			vec3 worldLight = vec3(world * vec4(u_lights[i].position, 1.0));
+			float dst = length(v_position - worldLight);
+			float atten = u_lights[i].constantAttenuation + u_lights[i].linearAttenuation * dst + u_lights[i].exponentialAttenuation * dst * dst;
+			lighting = lighting / atten;
 		}
 	}
 	
@@ -137,12 +160,12 @@ vec4 computeLighting()
 	vec4 wPos = world * vec4(v_position, 1.0);
 	float zDepth = wPos.z / wPos.w; 
 	
-	float bias = 0.05, visibility = 1.0;
+	float bias = 0.005, visibility = 1.0;
 	if(shadowMap.z > shadowMapUVS.z - bias)
 	{
 		visibility = 0.5;
 	}
-	//return col;
+	
 	return visibility * mix(col, vec4(u_fogColor, 1.0), att);
 }
 

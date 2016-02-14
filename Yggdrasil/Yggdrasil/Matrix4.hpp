@@ -153,7 +153,8 @@ namespace YG
 					*this = operator*(m);
 					return *this;
 				}
-
+				
+				/*
 				void fromQuaternion(const Quaternion& q)
 				{
 					m_data[0] = 1.0f - 2.0f * (q.y * q.y);
@@ -168,7 +169,8 @@ namespace YG
 					m_data[9] = 2.0f * q.y * q.z + 2.0f * q.x * q.w;
 					m_data[10] = 1.0f - 2.0f * (q.x * q.x) - 2.0f * (q.y * q.y);
 				}
-
+				*/
+				
 				static Matrix4 TranslationMatrix(const Vector3& v)
 				{
 					Matrix4 mat;
@@ -176,21 +178,6 @@ namespace YG
 					mat[7] = v.y;
 					mat[11] = v.z;
 					return mat;
-				}
-
-				static Matrix4 RotationMatrix(const Vector3& v)
-				{
-					Quaternion q(v);
-					Quaternion rX, rY, rZ;
-					rX.rotationQuaternion(v.x, Vector3(1.0f, 0.0f, 0.0f));
-					rY.rotationQuaternion(v.y, Vector3(0.0f, 1.0f, 0.0f));
-					rZ.rotationQuaternion(v.z, Vector3(0.0f, 0.0f, 1.0f));
-					q = rZ * q * rZ.conjugate();
-					q = rY * q * rY.conjugate();
-					q = rX * q * rX.conjugate();
-					Matrix4 rotMatrix;
-					rotMatrix.fromQuaternion(q);
-					return rotMatrix;
 				}
 
 				static Matrix4 RotationEulerXMatrix(float angle)
